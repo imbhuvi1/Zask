@@ -95,4 +95,24 @@ public class AuthResource {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody Map<String, String> body) {
+        try {
+            authService.logout(body.get("token"));
+            return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> body) {
+        try {
+            String newToken = authService.refreshToken(body.get("token"));
+            return ResponseEntity.ok(Map.of("token", newToken, "message", "Token refreshed"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

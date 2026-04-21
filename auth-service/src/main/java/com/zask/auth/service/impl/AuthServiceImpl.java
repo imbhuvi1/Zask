@@ -103,4 +103,21 @@ public class AuthServiceImpl implements AuthService {
     public List<User> searchUsers(String name) {
         return userRepository.findByFullNameContainingIgnoreCase(name);
     }
+    
+    @Override
+    public String refreshToken(String token) {
+        if (!jwtUtil.validateToken(token))
+            throw new RuntimeException("Invalid or expired token");
+        String email = jwtUtil.extractEmail(token);
+        User user = getUserByEmail(email);
+        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+    }
+
+    @Override
+    public void logout(String token) {
+        // Stateless JWT - client just discards token
+        // We just validate it exists
+        if (!jwtUtil.validateToken(token))
+            throw new RuntimeException("Invalid token");
+    }
 }

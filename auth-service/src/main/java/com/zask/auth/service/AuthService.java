@@ -14,4 +14,6 @@ public interface AuthService {
     void changePassword(int userId, String oldPassword, String newPassword);
     void deactivateAccount(int userId);
     List<User> searchUsers(String name);
+    String refreshToken(String token);
+    void logout(String token);
 }
