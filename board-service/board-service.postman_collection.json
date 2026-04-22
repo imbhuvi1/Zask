@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "Board Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8083/api/v1/boards" },
+    { "key": "boardId", "value": "1" },
+    { "key": "workspaceId", "value": "1" },
+    { "key": "userId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Boards",
+      "item": [
+        {
+          "name": "Create Board",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": 1,\n  \"name\": \"My Board\",\n  \"description\": \"Board description\",\n  \"background\": \"#ffffff\",\n  \"visibility\": \"public\",\n  \"createdById\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Board by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/{{boardId}}"
+          }
+        },
+        {
+          "name": "Get Boards by Workspace",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/workspace/{{workspaceId}}"
+          }
+        },
+        {
+          "name": "Get Boards by Member",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/member/{{userId}}"
+          }
+        },
+        {
+          "name": "Update Board",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/{{boardId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Board\",\n  \"description\": \"Updated description\",\n  \"background\": \"#000000\",\n  \"visibility\": \"private\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Close Board",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/{{boardId}}/close"
+          }
+        },
+        {
+          "name": "Delete Board",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/{{boardId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Members",
+      "item": [
+        {
+          "name": "Add Member",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/{{boardId}}/members",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 2,\n  \"role\": \"MEMBER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Members",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/{{boardId}}/members"
+          }
+        },
+        {
+          "name": "Update Member Role",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/{{boardId}}/members/{{userId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/{{boardId}}/members/{{userId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
