@@ -1,0 +1,157 @@
+{
+  "info": {
+    "name": "Card Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8085/api/v1/cards" },
+    { "key": "cardId", "value": "1" },
+    { "key": "listId", "value": "1" },
+    { "key": "boardId", "value": "1" },
+    { "key": "assigneeId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Create Card",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"listId\": 1,\n  \"boardId\": 1,\n  \"title\": \"Fix login bug\",\n  \"description\": \"Users can't login with Google\",\n  \"priority\": \"HIGH\",\n  \"status\": \"TODO\",\n  \"dueDate\": \"2025-08-01\",\n  \"startDate\": \"2025-07-20\",\n  \"assigneeId\": 1,\n  \"createdById\": 1,\n  \"coverColor\": \"#ff5733\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Card by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/{{cardId}}"
+      }
+    },
+    {
+      "name": "Get Cards by List",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/list/{{listId}}"
+      }
+    },
+    {
+      "name": "Get Cards by Board",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/board/{{boardId}}"
+      }
+    },
+    {
+      "name": "Get Cards by Assignee",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/assignee/{{assigneeId}}"
+      }
+    },
+    {
+      "name": "Get Overdue Cards",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/overdue"
+      }
+    },
+    {
+      "name": "Search Cards",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/search?title=bug"
+      }
+    },
+    {
+      "name": "Update Card",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Fix login bug - updated\",\n  \"description\": \"Updated description\",\n  \"priority\": \"MEDIUM\",\n  \"status\": \"IN_PROGRESS\",\n  \"dueDate\": \"2025-08-10\",\n  \"coverColor\": \"#33aaff\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Move Card",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/move",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"targetListId\": 2,\n  \"position\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "Reorder Cards",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/list/{{listId}}/reorder",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardIds\": [3, 1, 2]\n}"
+        }
+      }
+    },
+    {
+      "name": "Set Assignee",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/assignee/{{assigneeId}}"
+      }
+    },
+    {
+      "name": "Set Priority",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/priority",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"priority\": \"HIGH\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Set Status",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/status",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"DONE\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Archive Card",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/archive"
+      }
+    },
+    {
+      "name": "Unarchive Card",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{cardId}}/unarchive"
+      }
+    },
+    {
+      "name": "Delete Card",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/{{cardId}}"
+      }
+    }
+  ]
+}
