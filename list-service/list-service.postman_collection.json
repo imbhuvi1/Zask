@@ -1,0 +1,99 @@
+{
+  "info": {
+    "name": "List Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8084/api/v1/lists" },
+    { "key": "listId", "value": "1" },
+    { "key": "boardId", "value": "1" },
+    { "key": "targetBoardId", "value": "2" }
+  ],
+  "item": [
+    {
+      "name": "Create List",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"boardId\": 1,\n  \"name\": \"To Do\",\n  \"color\": \"#ff5733\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get List by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/{{listId}}"
+      }
+    },
+    {
+      "name": "Get Lists by Board",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/board/{{boardId}}"
+      }
+    },
+    {
+      "name": "Get Archived Lists",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/board/{{boardId}}/archived"
+      }
+    },
+    {
+      "name": "Update List",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{listId}}",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"In Progress\",\n  \"color\": \"#33aaff\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Reorder Lists",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/board/{{boardId}}/reorder",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"listIds\": [3, 1, 2]\n}"
+        }
+      }
+    },
+    {
+      "name": "Archive List",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{listId}}/archive"
+      }
+    },
+    {
+      "name": "Unarchive List",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{listId}}/unarchive"
+      }
+    },
+    {
+      "name": "Move List",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/{{listId}}/move/{{targetBoardId}}"
+      }
+    },
+    {
+      "name": "Delete List",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/{{listId}}"
+      }
+    }
+  ]
+}
