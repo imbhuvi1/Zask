@@ -11,6 +11,15 @@
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Full Name</mat-label>
+        <input matInput formControlName="fullName" placeholder="Enter your full name">
+        <mat-icon matPrefix>badge</mat-icon>
+        <mat-error *ngIf="registerForm.get('fullName')?.hasError('required')">
+          Full Name is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Username</mat-label>
         <input matInput formControlName="username" placeholder="Choose a username">
         <mat-icon matPrefix>person</mat-icon>
