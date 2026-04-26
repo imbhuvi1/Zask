@@ -140,7 +140,10 @@ export class DashboardComponent implements OnInit {
 
   loadWorkspaces() {
     this.isLoading.set(true);
-    this.workspaceService.getWorkspaces().subscribe({
+    const userId = this.authService.currentUser()?.id || 1; // Assuming 1 as fallback if ID format differs, should come from currentUser
+    
+    // As per your backend dev structure, we fetch by ownerId
+    this.workspaceService.getWorkspacesByOwner(userId).subscribe({
       next: (data) => {
         this.workspaces.set(data);
         this.isLoading.set(false);
