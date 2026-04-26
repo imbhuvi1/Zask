@@ -1,7 +1,7 @@
 export interface Workspace {
-  id: string;
+  workspaceId: number;
   name: string;
   description?: string;
-  ownerId: string;
+  ownerId: number;
   createdAt?: string;
 }

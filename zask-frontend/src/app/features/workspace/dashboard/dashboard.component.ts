@@ -46,7 +46,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       </div>
 
       <div class="workspace-grid" *ngIf="!isLoading()">
-        <mat-card class="workspace-card" *ngFor="let ws of workspaces()" (click)="goToWorkspace(ws.id)">
+        <mat-card class="workspace-card" *ngFor="let ws of workspaces()" (click)="goToWorkspace(ws.workspaceId)">
           <mat-card-header>
             <mat-card-title>{{ ws.name }}</mat-card-title>
           </mat-card-header>
@@ -173,8 +173,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  goToWorkspace(id: string) {
-    this.router.navigate(['/workspace', id]);
+  goToWorkspace(workspaceId: number) {
+    this.router.navigate(['/workspace', workspaceId]);
   }
 
   logout() {
