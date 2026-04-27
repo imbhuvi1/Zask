@@ -27,7 +27,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         <span>Zask</span>
       </div>
       <span class="spacer"></span>
-      <span class="welcome-text">Welcome, {{ authService.currentUser()?.username }}</span>
+      <span class="welcome-text">Welcome, {{ authService.currentUser()?.fullName }}</span>
       <button mat-icon-button (click)="logout()">
         <mat-icon>logout</mat-icon>
       </button>

@@ -1,13 +1,18 @@
 export interface User {
-  id: string;
-  username: string;
+  id: number;
   email: string;
-  roles: string[];
+  role: string;
+  fullName: string;
+  username?: string;
 }
 
 export interface AuthResponse {
   token: string;
-  user: User;
+  email: string;
+  role: string;
+  userId: number;
+  message: string;
+  fullName: string;
 }
 
 export interface LoginRequest {

@@ -1,0 +1,61 @@
+<mat-toolbar color="primary" class="board-toolbar">
+  <button mat-icon-button routerLink="/dashboard">
+    <mat-icon>dashboard</mat-icon>
+  </button>
+  <span class="board-title">{{ board()?.name || 'Loading Board...' }}</span>
+</mat-toolbar>
+
+<div class="board-container" [style.background]="board()?.background || '#1e3c72'">
+  
+  <div class="loading-state" *ngIf="isLoading()">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div class="board-canvas" *ngIf="!isLoading()" cdkDropListGroup cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="dropList($event)">
+    
+    <!-- Render each List -->
+    <div class="list-wrapper" *ngFor="let listGroup of boardLists()" cdkDrag>
+      <div class="list-content">
+        <div class="list-header" cdkDragHandle>
+          <h3>{{ listGroup.list.name }}</h3>
+          <button mat-icon-button class="list-menu"><mat-icon>more_horiz</mat-icon></button>
+        </div>
+
+        <!-- Cards Container (Droppable area) -->
+        <div class="cards-container" 
+             [id]="'list-' + listGroup.list.listId"
+             cdkDropList 
+             [cdkDropListData]="listGroup.cards" 
+             (cdkDropListDropped)="dropCard($event)">
+             
+          <div class="card-item" *ngFor="let card of listGroup.cards" cdkDrag>
+            <div *ngIf="card.coverColor" class="card-cover" [style.background]="card.coverColor"></div>
+            <div class="card-title">{{ card.title }}</div>
+            <div class="card-badges" *ngIf="card.priority || card.description">
+              <mat-icon *ngIf="card.description" class="badge-icon">subject</mat-icon>
+              <span class="badge" *ngIf="card.priority === 'HIGH' || card.priority === 'CRITICAL'" style="background: #f44336;">Hot</span>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Add Card Input -->
+        <div class="add-card-container">
+          <input type="text" placeholder="+ Add a card" 
+                 [(ngModel)]="newCardTitles[listGroup.list.listId]" 
+                 (keyup.enter)="addCard(listGroup.list.listId)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Add List Button -->
+    <div class="add-list-wrapper">
+      <div class="add-list-content">
+        <input type="text" placeholder="+ Add another list" 
+               [(ngModel)]="newListTitle" 
+               (keyup.enter)="addList()">
+      </div>
+    </div>
+
+  </div>
+</div>

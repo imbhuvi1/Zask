@@ -16,4 +16,6 @@ public interface AuthService {
     List<User> searchUsers(String name);
     String refreshToken(String token);
     void logout(String token);
+    void forgotPassword(String email);
+    void resetPassword(String resetToken, String newPassword);
 }

@@ -6,9 +6,13 @@ import com.zask.auth.repository.UserRepository;
 import com.zask.auth.service.AuthService;
 import com.zask.auth.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -21,6 +25,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -38,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getEmail(), user.getRole(),
-                                user.getUserId(), "Registration successful");
+                                user.getUserId(), "Registration successful", user.getFullName());
     }
 
     @Override
@@ -54,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getEmail(), user.getRole(),
-                                user.getUserId(), "Login successful");
+                                user.getUserId(), "Login successful", user.getFullName());
     }
 
     @Override
@@ -119,5 +126,46 @@ public class AuthServiceImpl implements AuthService {
         // We just validate it exists
         if (!jwtUtil.validateToken(token))
             throw new RuntimeException("Invalid token");
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("No account with that email exists."));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        if (mailSender != null) {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setSubject("Zask - Password Reset Request");
+            message.setText("Click the following link to reset your password:\n" +
+                            "http://localhost:4200/reset-password?token=" + token);
+            try {
+                mailSender.send(message);
+            } catch (Exception e) {
+                System.err.println("Could not send email: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Mock Email to " + email + ": Reset token is " + token);
+        }
+    }
+
+    @Override
+    public void resetPassword(String resetToken, String newPassword) {
+        User user = userRepository.findByResetToken(resetToken)
+            .orElseThrow(() -> new RuntimeException("Invalid reset token."));
+
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset token has expired.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
     }
 }

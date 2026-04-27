@@ -54,8 +54,16 @@ export class AuthService {
 
   private setAuth(response: AuthResponse) {
     localStorage.setItem('token', response.token);
-    // Depending on backend, user payload might be nested or direct
-    const user = response.user || { username: 'User' } as User; 
+    
+    // AuthResponse is flat from Java backend, map it to User object:
+    const user: User = { 
+      id: response.userId,
+      email: response.email,
+      role: response.role,
+      fullName: response.fullName || 'User',
+      username: response.fullName || 'User'
+    }; 
+    
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
