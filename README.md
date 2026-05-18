@@ -62,6 +62,11 @@ The project utilizes a curated, state-of-the-art tech stack selected for scalabi
 * **Primary Relational Store:** MySQL Database
 * **Database Access:** Custom JPA Repositories mapping directly to microservice-specific relational schemas
 
+### 🗄️ Comprehensive Database Entity-Relationship (ER) Diagram
+This detailed relational schema outlines the production-grade, decoupled database tables, data types, and primary/foreign key relationships utilized by the ZASK microservices to maintain strict data boundaries:
+
+![ZASK Database ER Diagram](zask_database_schema.png)
+
 ---
 
 ## 🧩 Microservices Directory - What They Do
@@ -120,9 +125,6 @@ The backend architecture comprises 10 independent microservices/infra nodes. Eac
 
 ### 🛡️ User Registration & Login Request Flow
 ![ZASK Authentication Request Flow](zask_auth_flow.png)
-
-### 🗄️ Decoupled Database Entity-Relationship (ER) Schema
-![ZASK Database ER Diagram](zask_database_schema.png)
 
 ### Detailed Execution Lifecycle
 1. **Client Action:** A user interacts with the ZASK Angular Frontend (e.g., moves a card).
