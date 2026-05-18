@@ -8,6 +8,12 @@ ZASK is a high-performance, real-time, and highly scalable distributed Task Mana
 
 ZASK is divided into a decoupled **Angular 17 SPA Frontend** and a **Spring Boot 3 distributed Microservices Backend**. They communicate via a unified API Gateway and utilize Service Discovery for dynamic routing and fault tolerance.
 
+### 🌐 Complete Full-Stack System Architecture Diagram
+![ZASK Full-Stack Architecture Map](zask_fullstack_architecture.png)
+
+### 🔄 End-to-End System Request-Flow Sequence Diagram
+![ZASK System Request Flow](zask_architecture_flow.png)
+
 ### Project Structure Overview
 
 ```text
@@ -112,6 +118,13 @@ The backend architecture comprises 10 independent microservices/infra nodes. Eac
 
 ## 🔄 Architectural Request & Authentication Flow
 
+### 🛡️ User Registration & Login Request Flow
+![ZASK Authentication Request Flow](zask_auth_flow.png)
+
+### 🗄️ Decoupled Database Entity-Relationship (ER) Schema
+![ZASK Database ER Diagram](zask_database_schema.png)
+
+### Detailed Execution Lifecycle
 1. **Client Action:** A user interacts with the ZASK Angular Frontend (e.g., moves a card).
 2. **Unified Dispatch:** The Angular frontend attaches the user's signed JWT token to the HTTP header and forwards the request to the **API Gateway** (`http://localhost:8080/api/v1/cards/...`).
 3. **Dynamic Routing:** The Gateway identifies the path, queries the **Eureka Service Discovery Server** for the active address of the Card Service, and routes the payload securely.
