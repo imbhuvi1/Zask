@@ -1,0 +1,122 @@
+<div class="max-w-5xl mx-auto p-8 font-sans">
+  
+  <!-- Title with Badge -->
+  <div class="flex items-center gap-3 mb-6">
+    <h1 class="text-2xl font-bold text-[#172b4d]">Collaborators</h1>
+    <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full">
+      {{ members().length }} / 10
+    </span>
+    <div class="flex-1"></div>
+    <button (click)="router.navigate(['/dashboard'])" class="text-gray-400 hover:text-gray-600 transition-colors">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-gray-200 mb-6">
+    <button class="px-4 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">
+      Members ({{ members().length }})
+    </button>
+  </div>
+
+  <!-- Description and Invite Button -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <p class="text-sm text-gray-600 max-w-2xl leading-relaxed">
+      Workspace members can view and join all Workspace visible boards and create new boards in the Workspace.
+    </p>
+    <button (click)="openAddMemberDialog()" 
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded font-bold text-sm transition-colors flex items-center gap-2 shrink-0 shadow-sm">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">person_add</mat-icon>
+      Invite Workspace members
+    </button>
+  </div>
+
+  <!-- Search Filter -->
+  <div class="mb-6">
+    <input type="text" 
+           [(ngModel)]="searchQuery"
+           placeholder="Filter by name" 
+           class="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all">
+  </div>
+
+  <mat-divider class="!mb-6"></mat-divider>
+
+  <!-- Members List -->
+  <div class="space-y-0">
+    <div *ngFor="let member of filteredMembers()" 
+         class="flex items-center gap-4 py-5 border-b border-gray-100 group transition-all">
+      
+      <!-- Avatar -->
+      <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+           [style.background-color]="getAvatarColor(member.userId)">
+        {{ member.fullName?.charAt(0)?.toUpperCase() || 'U' }}
+      </div>
+
+      <!-- Member Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-[#172b4d] truncate">{{ member.fullName || 'User ' + member.userId }}</span>
+          <span class="text-sm text-gray-500">&#64;{{ getUsername(member) }}</span>
+        </div>
+        <p class="text-xs text-gray-400 mt-0.5">Last active May 2026</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Boards Dropdown Button -->
+        <button class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#172b4d] bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors">
+          Boards (1)
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">expand_more</mat-icon>
+        </button>
+
+        <!-- Leave Button (Self) - Owners cannot leave -->
+        <button *ngIf="member.userId === currentUserId && member.userId !== workspace()?.ownerId"
+                (click)="leaveWorkspace()"
+                class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#172b4d] hover:bg-gray-100 border border-gray-200 rounded transition-colors">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">logout</mat-icon>
+          Leave
+        </button>
+
+        <button *ngIf="member.userId !== currentUserId && isOwnerOrAdmin"
+                (click)="confirmRemove(member)"
+                class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 border border-gray-200 rounded transition-colors">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">close</mat-icon>
+          Remove
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredMembers().length === 0" class="py-12 text-center">
+    <mat-icon class="!text-gray-200 !text-[64px] !w-16 !h-16 mb-4">group_off</mat-icon>
+    <p class="text-gray-500 font-medium">No members found</p>
+  </div>
+
+</div>
+
+<!-- Remove Confirmation Modal (Matching screenshot style if needed, or keeping my existing one) -->
+<div *ngIf="memberToRemove()"
+     class="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] backdrop-blur-[1px]">
+  <div class="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100">
+    <div class="flex items-center gap-3 text-red-600 mb-4">
+      <mat-icon class="!text-[24px] !w-6 !h-6">warning</mat-icon>
+      <h3 class="text-xl font-bold">Remove Member?</h3>
+    </div>
+    <p class="text-gray-600 mb-8 text-sm leading-relaxed">
+      Are you sure you want to remove <strong>{{ memberToRemove()?.fullName }}</strong> from the workspace? They will lose access to all boards.
+    </p>
+    <div class="flex gap-3">
+      <button (click)="memberToRemove.set(null)"
+              class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
+        Cancel
+      </button>
+      <button (click)="removeMember()"
+              class="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors shadow-sm">
+        Confirm Remove
+      </button>
+    </div>
+  </div>
+</div>

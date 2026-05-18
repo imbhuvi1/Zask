@@ -1,0 +1,975 @@
+@if (!isLoading()) {
+<div class="bg-white rounded-xl shadow-2xl max-w-5xl mx-auto overflow-hidden font-sans text-[#172b4d] min-h-[500px]">
+  
+  <!-- Card Cover Banner -->
+  @if (card()?.coverColor) {
+    <div class="h-32 w-full transition-all duration-500 animate-in fade-in slide-in-from-top-4" [style.background]="card()?.coverColor"></div>
+  }
+
+  <!-- Top Header Bar -->
+  <div class="flex justify-between items-center px-6 py-3 bg-white border-b border-slate-100">
+    <div class="flex items-center gap-2">
+      <nav class="flex items-center text-xs font-medium text-slate-400">
+        <span class="hover:text-slate-600 cursor-pointer">Projects</span>
+        <mat-icon class="!text-[14px] !w-4 !h-4 mx-1">chevron_right</mat-icon>
+        <span class="text-slate-900">Weekly tasks</span>
+      </nav>
+    </div>
+    <div class="flex items-center gap-1">
+      <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 transition-colors">
+        <mat-icon class="!text-lg">visibility</mat-icon>
+        <span>Watching</span>
+      </button>
+      <div class="w-px h-4 bg-slate-200 mx-2"></div>
+      <button mat-icon-button class="!w-8 !h-8 text-slate-400 hover:text-slate-600" [matMenuTriggerFor]="moreMenu">
+        <mat-icon class="!text-lg">more_horiz</mat-icon>
+      </button>
+      <button mat-icon-button mat-dialog-close class="!w-8 !h-8 text-slate-400 hover:text-slate-600">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col md:flex-row h-[calc(90vh-56px)] overflow-hidden">
+    <!-- Left Column (Main Content) -->
+    <div class="flex-[1.6] p-8 overflow-y-auto custom-scrollbar">
+      
+      <!-- Applied Labels (Top of Title) -->
+      @if (labels().length > 0) {
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          @for (label of labels(); track label.labelId) {
+            <div [style.background]="label.color" 
+                 class="h-1.5 min-w-[32px] rounded-full shadow-sm"
+                 [matTooltip]="label.name">
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Card Title -->
+      <div class="flex items-start gap-4 mb-6">
+        <button class="mt-2.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                [ngClass]="{
+                  'bg-green-500 border-green-500 text-white': card()?.status === 'DONE',
+                  'border-slate-300 hover:border-green-500 hover:bg-green-50 text-transparent': card()?.status !== 'DONE'
+                }"
+                (click)="toggleCardDone()"
+                matTooltip="Mark task completed">
+          <mat-icon class="!text-[12px] !w-3 !h-3 flex items-center justify-center font-bold">check</mat-icon>
+        </button>
+        <div class="flex-1">
+          @if (canEdit()) {
+            <input class="text-3xl font-bold border-none bg-transparent w-full outline-none focus:ring-0 p-0 placeholder-slate-300 transition-colors" 
+                   [ngClass]="card()?.status === 'DONE' ? 'text-slate-400' : 'text-slate-800'"
+                   [(ngModel)]="card()!.title" 
+                   (blur)="updateCardTitle()"
+                   placeholder="Task title..." />
+          } @else {
+            <h2 class="text-3xl font-bold m-0 transition-colors"
+                [ngClass]="card()?.status === 'DONE' ? 'text-slate-400' : 'text-slate-800'">
+              {{ card()?.title }}
+            </h2>
+          }
+        </div>
+      </div>
+
+      <!-- Date Badges & Member Avatars below Card Title -->
+      @if (card()?.startDate || card()?.dueDate || cardMembers().length > 0) {
+        <div class="flex items-center flex-wrap gap-4 mb-6 ml-10">
+          @if (card()?.startDate) {
+            <div>
+              <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Start Date</h4>
+              <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+                   [matMenuTriggerFor]="datesMenu" (click)="initDatesMenuState()">
+                <mat-icon class="!text-sm">date_range</mat-icon>
+                <span>{{ card()?.startDate | date:'MMM d, yyyy' }}</span>
+              </div>
+            </div>
+          }
+          @if (card()?.dueDate) {
+            <div>
+              <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Due Date</h4>
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                   [ngClass]="getDueDateBadgeClass()"
+                   [matMenuTriggerFor]="datesMenu" (click)="initDatesMenuState()">
+                <mat-icon class="!text-sm">calendar_today</mat-icon>
+                <span>{{ card()?.dueDate | date:'MMM d, yyyy' }}</span>
+                @if (card()?.status === 'DONE') {
+                  <span class="text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded font-bold uppercase ml-1">Done</span>
+                } @else if (isOverdue(card()?.dueDate)) {
+                  <span class="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold uppercase ml-1">Overdue</span>
+                } @else if (isDueSoon(card()?.dueDate)) {
+                  <span class="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-bold uppercase ml-1">Due Soon</span>
+                }
+              </div>
+            </div>
+          }
+          @if (cardMembers().length > 0) {
+            <div>
+              <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Members</h4>
+              <div class="flex items-center -space-x-1.5">
+                @for (m of cardMembers(); track m.userId) {
+                  <div class="w-7 h-7 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-bold text-[10px] shadow-sm relative group cursor-pointer hover:scale-110 transition-transform"
+                       [matTooltip]="m.fullName + ' (' + m.email + ')'"
+                       (click)="openProfilePreview(m.userId, $event)">
+                    {{ m.fullName?.charAt(0) || 'U' }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- Action Bar -->
+      <div class="flex flex-wrap items-center gap-3 mb-10">
+        <button class="action-badge" [matMenuTriggerFor]="statusMenu" [style.backgroundColor]="getStatusBg()" [style.color]="getStatusColor()">
+          <mat-icon class="!text-sm">fiber_manual_record</mat-icon>
+          {{ card()?.status ? (card()?.status?.replace('_', ' ') | titlecase) : 'No Status' }}
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="priorityMenu">
+          <mat-icon class="!text-sm" [style.color]="getPriorityColor()">flag</mat-icon>
+          <span [style.color]="getPriorityColor()">{{ card()?.priority ? (card()?.priority | titlecase) : 'Priority' }}</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="assigneeMenu">
+          <mat-icon class="!text-sm">person_outline</mat-icon>
+          <span>Assignee</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" 
+                [matMenuTriggerFor]="datesMenu" (click)="initDatesMenuState()">
+          <mat-icon class="!text-sm">calendar_today</mat-icon>
+          <span>Dates</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="labelsMenu">
+          <mat-icon class="!text-sm">label_outline</mat-icon>
+          <span>Labels</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="checklistMenu">
+          <mat-icon class="!text-sm">task_alt</mat-icon>
+          <span>Checklist</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="coverMenu">
+          <mat-icon class="!text-sm">palette</mat-icon>
+          <span>Cover</span>
+        </button>
+
+        <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100" [matMenuTriggerFor]="attachmentMenu">
+          <mat-icon class="!text-sm">attach_file</mat-icon>
+          <span>Attachment</span>
+        </button>
+      </div>
+
+      <!-- Labels Section (Detailed) -->
+      @if (labels().length > 0) {
+      <div class="mb-10">
+        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Labels</h4>
+        <div class="flex flex-wrap gap-2">
+          @for (label of labels(); track label.labelId) {
+            <div [style.background]="label.color" 
+                 class="h-7 px-3 flex items-center rounded-lg text-white text-[11px] font-bold shadow-sm cursor-pointer hover:brightness-95 transition-all group/label"
+                 [matMenuTriggerFor]="labelsMenu">
+              {{ label.name }}
+            </div>
+          }
+          <button class="w-7 h-7 bg-slate-50 hover:bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 transition-colors border border-slate-100" [matMenuTriggerFor]="labelsMenu">
+            <mat-icon class="!text-lg">add</mat-icon>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- Description Area -->
+      <div class="mb-12">
+        <div class="flex items-center gap-2.5 mb-4">
+          <mat-icon class="!text-xl text-slate-400">subject</mat-icon>
+          <h3 class="text-sm font-bold text-slate-800 m-0 uppercase tracking-wider">Description</h3>
+        </div>
+        
+        <div class="ml-8">
+          @if (!isEditingDescription()) {
+            <div class="cursor-text group rounded-xl hover:bg-slate-50/50 p-1 -m-1 transition-colors" (click)="canEdit() ? startEditingDescription() : null">
+              @if (card()!.description) {
+                <div class="text-[14px] leading-relaxed text-slate-600 whitespace-pre-wrap">{{card()!.description}}</div>
+              } @else if (canEdit()) {
+                <div class="bg-slate-50/50 border border-dashed border-slate-200 rounded-xl p-6 text-sm text-slate-400 font-medium min-h-[100px] flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-all">
+                  Add a more detailed description...
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="bg-white border border-indigo-200 rounded-2xl shadow-lg p-2 animate-in fade-in slide-in-from-top-1">
+              <textarea 
+                class="w-full min-h-[160px] p-4 text-[14px] leading-relaxed text-slate-700 placeholder-slate-400 bg-transparent resize-none outline-none" 
+                placeholder="Write your description here..."
+                [(ngModel)]="tempDescription"
+                autofocus>
+              </textarea>
+              <div class="flex gap-2 justify-end p-2 border-t border-slate-50">
+                <button class="text-xs font-bold text-slate-400 hover:text-slate-600 px-4 py-2" (click)="cancelEditingDescription()">Cancel</button>
+                <button class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded-xl shadow-md shadow-indigo-500/20 transition-all" (click)="saveDescription()">Save Description</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Checklists -->
+      @for (cl of checklists(); track cl.checklistId) {
+        <div class="mb-12 group/cl">
+          <div class="flex items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-2.5 flex-grow">
+              <mat-icon class="!text-xl text-slate-400">task_alt</mat-icon>
+              @if (editingChecklistId() === cl.checklistId) {
+                <input type="text"
+                       class="text-sm font-bold text-slate-800 border border-slate-300 rounded px-2 py-0.5 focus:outline-none focus:border-blue-600 uppercase tracking-wider flex-grow"
+                       [value]="cl.title"
+                       #editClTitleInput
+                       (blur)="saveChecklistTitle(cl.checklistId, editClTitleInput.value)"
+                       (keydown.enter)="saveChecklistTitle(cl.checklistId, editClTitleInput.value)"
+                       (keydown.escape)="editingChecklistId.set(null)"
+                       autofocus />
+              } @else {
+                <h3 class="text-sm font-bold text-slate-800 m-0 uppercase tracking-wider cursor-pointer hover:bg-slate-100/60 px-1.5 py-0.5 rounded transition-all"
+                    (click)="startEditingChecklist(cl.checklistId)"
+                    matTooltip="Click to edit title">
+                  {{ cl.title }}
+                </h3>
+              }
+            </div>
+            <div class="flex gap-4 opacity-0 group-hover/cl:opacity-100 transition-opacity">
+              <button class="text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+                      (click)="toggleHideCompleted(cl.checklistId)">
+                {{ hideCompletedItems()[cl.checklistId] ? 'Show checked items' : 'Hide checked items' }}
+              </button>
+              <button class="text-xs font-semibold text-slate-500 hover:text-rose-600 transition-colors"
+                      (click)="deleteChecklist(cl.checklistId)">Delete</button>
+            </div>
+          </div>
+
+          <!-- Progress Section -->
+          <div class="flex items-center gap-3 mb-6 ml-8">
+            <div class="flex-grow h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full transition-all duration-700 ease-out rounded-full bg-blue-600" 
+                   [style.width.%]="getChecklistProgress(cl)"></div>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 min-w-[24px]">{{ getChecklistProgress(cl) }}%</span>
+          </div>
+
+          <!-- Items Feed -->
+          <div class="flex flex-col gap-1 ml-8 mb-6">
+            @for (item of cl.items; track item.itemId) {
+              @if (!(hideCompletedItems()[cl.checklistId] && item.isCompleted)) {
+                <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50/80 group/item transition-all border border-transparent hover:border-slate-100">
+                  <mat-checkbox [checked]="item.isCompleted" 
+                               (change)="toggleChecklistItem(item)"
+                               color="primary"
+                               class="shrink-0 modern-checkbox"></mat-checkbox>
+                  
+                  @if (editingItemId() === item.itemId) {
+                    <input type="text"
+                           class="text-sm text-slate-700 border border-slate-300 rounded px-2 py-0.5 focus:outline-none focus:border-blue-600 flex-grow"
+                           [value]="item.text"
+                           #editItemInput
+                           (blur)="saveChecklistItemText(cl.checklistId, item, editItemInput.value)"
+                           (keydown.enter)="saveChecklistItemText(cl.checklistId, item, editItemInput.value)"
+                           (keydown.escape)="editingItemId.set(null)"
+                           autofocus />
+                  } @else {
+                    <span class="text-sm flex-grow text-slate-600 transition-all cursor-pointer hover:bg-slate-100/60 px-1.5 py-0.5 rounded"
+                          [ngClass]="{'line-through text-slate-300': item.isCompleted}"
+                          (click)="editingItemId.set(item.itemId)"
+                          matTooltip="Click to edit item">
+                      {{ item.text }}
+                    </span>
+                  }
+                  
+                  <!-- Item Assignee and Due Date Badges -->
+                  @if (item.assigneeId || item.dueDate) {
+                    <div class="flex items-center gap-2">
+                      @if (item.assigneeId) {
+                        <div class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[9px]"
+                             [matTooltip]="getMemberName(item.assigneeId)">
+                          {{ getMemberInitials(item.assigneeId) }}
+                        </div>
+                      }
+                      @if (item.dueDate) {
+                        <div class="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-500 rounded text-[9px] font-bold border border-slate-100">
+                          <mat-icon class="!text-[10px] !w-3 !h-3">schedule</mat-icon>
+                          <span>{{ item.dueDate | date:'MMM d' }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Delete Item Button -->
+                  <button mat-icon-button class="opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-rose-600 transition-all !w-7 !h-7 flex items-center justify-center shrink-0" 
+                          (click)="deleteChecklistItem(cl.checklistId, item.itemId)" 
+                          matTooltip="Delete item">
+                    <mat-icon class="!text-lg">delete</mat-icon>
+                  </button>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Add Item Field -->
+          <div class="ml-8">
+            @if (newItemText[cl.checklistId] === undefined) {
+              <button (click)="newItemText[cl.checklistId] = ''"
+                   class="flex items-center gap-2 text-[13px] font-semibold text-slate-400 hover:text-indigo-600 px-3 py-2 rounded-xl hover:bg-indigo-50 transition-all">
+                <mat-icon class="!text-lg">add</mat-icon>
+                <span>Add an item</span>
+              </button>
+            } @else {
+              <div class="bg-white border border-indigo-200 rounded-2xl shadow-lg p-2 animate-in fade-in slide-in-from-top-1">
+                <textarea [(ngModel)]="newItemText[cl.checklistId]" 
+                          class="w-full p-3 text-[14px] leading-relaxed text-slate-700 placeholder-slate-400 bg-transparent resize-none outline-none"
+                          placeholder="What needs to be done?"
+                          autofocus></textarea>
+                <div class="flex flex-wrap gap-2 items-center justify-between p-2 border-t border-slate-50">
+                  <div class="flex items-center gap-2">
+                    <!-- Optional Assign Member Button -->
+                    <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100 !py-1 !px-2.5 flex items-center gap-1.5 rounded-lg border border-slate-100 cursor-pointer"
+                            [matMenuTriggerFor]="itemAssigneeMenu">
+                      <mat-icon class="!text-[12px] !w-3 !h-3">person_outline</mat-icon>
+                      <span class="text-[10px] font-bold">{{ itemAssigneeId[cl.checklistId] ? getMemberName(itemAssigneeId[cl.checklistId]) : 'Assign' }}</span>
+                    </button>
+                    <mat-menu #itemAssigneeMenu="matMenu" class="!rounded-2xl !p-2 shadow-xl border border-slate-100 !min-w-[200px]">
+                      <div class="px-2 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Assign Item to</div>
+                      <div class="flex flex-col gap-0.5">
+                        <button (click)="itemAssigneeId[cl.checklistId] = null"
+                                class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 text-[11px] font-semibold text-slate-600 cursor-pointer w-full text-left">
+                          <mat-icon class="!text-sm">person_remove</mat-icon>
+                          <span>Unassigned</span>
+                        </button>
+                        @for (m of boardMembers(); track m.userId) {
+                          <button (click)="itemAssigneeId[cl.checklistId] = m.userId"
+                                  class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-indigo-50/50 cursor-pointer transition-all border border-transparent text-[11px] font-semibold text-slate-700 w-full text-left"
+                                  [ngClass]="{'bg-indigo-50 border-indigo-100': itemAssigneeId[cl.checklistId] === m.userId}">
+                            <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[9px] shrink-0">
+                              {{ m.fullName?.charAt(0) || 'U' }}
+                            </div>
+                            <span class="truncate">{{ m.fullName }}</span>
+                          </button>
+                        }
+                      </div>
+                    </mat-menu>
+
+                    <!-- Optional Due Date Button -->
+                    <button class="action-badge bg-slate-50 text-slate-600 hover:bg-slate-100 !py-1 !px-2.5 flex items-center gap-1.5 rounded-lg border border-slate-100 cursor-pointer"
+                            [matMenuTriggerFor]="itemDueDateMenu">
+                      <mat-icon class="!text-[12px] !w-3 !h-3">calendar_today</mat-icon>
+                      <span class="text-[10px] font-bold">{{ itemDueDate[cl.checklistId] ? (itemDueDate[cl.checklistId] | date:'MMM d') : 'Due Date' }}</span>
+                    </button>
+                    <mat-menu #itemDueDateMenu="matMenu" class="!rounded-2xl !p-3 shadow-xl border border-slate-100 !min-w-[180px]">
+                      <div class="px-2 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Set Item Due Date</div>
+                      <div class="flex flex-col gap-2 p-1" (click)="$event.stopPropagation()">
+                        <input type="date" [(ngModel)]="itemDueDate[cl.checklistId]"
+                               class="w-full text-xs border border-slate-200 rounded px-2 py-1.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        <div class="flex gap-2 justify-end mt-2">
+                          <button class="px-2 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded cursor-pointer" (click)="itemDueDate[cl.checklistId] = null; closeAllMenus()">Clear</button>
+                          <button class="px-2 py-1 text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm cursor-pointer" (click)="closeAllMenus()">Done</button>
+                        </div>
+                      </div>
+                    </mat-menu>
+                  </div>
+                  
+                  <div class="flex gap-2 justify-end">
+                    <button class="text-xs font-bold text-slate-400 hover:text-slate-600 px-4 py-2 cursor-pointer" (click)="newItemText[cl.checklistId] = undefined">Cancel</button>
+                    <button class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer" (click)="addChecklistItem(cl.checklistId)">Add Item</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Attachments Section -->
+      @if (attachments().length > 0) {
+        <div class="mb-12">
+          <div class="flex items-center gap-2.5 mb-6">
+            <mat-icon class="!text-xl text-slate-400">attach_file</mat-icon>
+            <h3 class="text-sm font-bold text-slate-800 m-0 uppercase tracking-wider">Attachments</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-8">
+            @for (att of attachments(); track att.attachmentId) {
+              <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-md hover:shadow-indigo-500/5 transition-all group/att">
+                <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/att:bg-indigo-50 group-hover/att:text-indigo-500 transition-colors">
+                  <mat-icon class="!text-2xl">insert_drive_file</mat-icon>
+                </div>
+                <div class="flex-grow min-w-0">
+                  <div class="text-[13px] font-bold text-slate-700 truncate mb-0.5">{{ att.fileName }}</div>
+                  <div class="text-[10px] text-slate-400 font-medium uppercase tracking-tight">
+                    {{ att.uploadedAt | date:'MMM d' }} • 
+                    <button class="text-rose-500 hover:text-rose-700" (click)="deleteAttachment(att.attachmentId)">Remove</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Right Column (Activity & Sidebar) -->
+    <div class="flex-1 bg-slate-50/50 border-l border-slate-100 flex flex-col min-w-0 h-full">
+      <div class="flex-grow overflow-y-auto p-6 custom-scrollbar">
+        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50/50 backdrop-blur-sm z-10 py-1">
+          <div class="flex items-center gap-2">
+            <mat-icon class="!text-lg text-slate-400">forum</mat-icon>
+            <h3 class="text-sm font-bold text-slate-800 m-0 uppercase tracking-wider">Activity</h3>
+          </div>
+          <button class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded"
+                  (click)="showDetails.set(!showDetails())">
+            {{ showDetails() ? 'Simple' : 'Detailed' }}
+          </button>
+        </div>
+
+        <!-- Comment Feed -->
+        <div class="flex flex-col gap-6">
+          @for (comment of comments(); track comment.commentId) {
+            <ng-container *ngTemplateOutlet="commentTemplate; context: { $implicit: comment, level: 0 }"></ng-container>
+          }
+        </div>
+
+        <!-- Activity Log (Detailed) -->
+        @if (showDetails()) {
+          <div class="mt-8 flex flex-col gap-4">
+            @if (activities().length === 0) {
+              <div class="text-center py-8 text-xs text-slate-400">
+                <mat-icon class="!text-3xl !w-8 !h-8 opacity-20 mb-1">history</mat-icon>
+                <div>No activity yet</div>
+              </div>
+            }
+            @for (act of activities(); track act.activityId) {
+              <div class="flex gap-3 items-start group/act">
+                <!-- Actor Avatar -->
+                <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 text-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                     [style.background]="'#6366f1'"
+                     (click)="openProfilePreview(act.actorId, $event)">
+                  {{ act.actorName?.charAt(0) || 'U' }}
+                </div>
+                <div class="flex flex-col min-w-0 flex-1">
+                  <div class="text-xs leading-snug">
+                    <span class="font-bold text-slate-800">{{ act.actorName }}</span>
+                    <span class="text-slate-500 ml-1">{{ act.details }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <!-- Action Badge -->
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                          [ngClass]="{
+                            'bg-green-50 text-green-700': act.action === 'STATUS_CHANGE',
+                            'bg-blue-50 text-blue-700': act.action === 'ASSIGNMENT',
+                            'bg-amber-50 text-amber-700': act.action === 'DUE_DATE_CHANGE',
+                            'bg-purple-50 text-purple-700': act.action === 'MOVE',
+                            'bg-slate-50 text-slate-600': !['STATUS_CHANGE','ASSIGNMENT','DUE_DATE_CHANGE','MOVE'].includes(act.action)
+                          }">
+                      {{ act.action?.replace('_', ' ') }}
+                    </span>
+                    <span class="text-[10px] text-slate-400">{{ act.timestamp | date:'MMM d, h:mm a' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Sticky Comment Input at Bottom -->
+      <div class="p-4 bg-white border-t border-slate-100">
+        <div class="relative group">
+          <textarea #commentArea
+                    class="w-full text-sm outline-none placeholder-slate-400 min-h-[44px] max-h-32 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none shadow-inner" 
+                    placeholder="Message or comment..." 
+                    [(ngModel)]="newCommentText"
+                    (keydown.enter)="$event.preventDefault(); addComment()"></textarea>
+          <div class="absolute right-2 bottom-2" *ngIf="newCommentText.trim()">
+            <button (click)="addComment()" 
+                    class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all scale-in">
+              <mat-icon class="!text-lg">send</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center justify-between px-1">
+          <span class="text-[10px] text-slate-400 font-medium italic">Press Enter to send</span>
+          <div class="flex items-center gap-2">
+            <button class="text-slate-400 hover:text-slate-600"><mat-icon class="!text-base">alternate_email</mat-icon></button>
+            <button class="text-slate-400 hover:text-slate-600"><mat-icon class="!text-base">insert_emoticon</mat-icon></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+} @else {
+  <div class="flex flex-col justify-center items-center h-[500px] gap-4 bg-white rounded-xl">
+    <mat-spinner diameter="40" color="accent"></mat-spinner>
+    <div class="text-gray-500 font-medium animate-pulse">Fetching card details...</div>
+  </div>
+}
+
+<!-- Recursive Comment Template -->
+<ng-template #commentTemplate let-comment let-level="level">
+  <div class="flex gap-3 mb-2" [style.margin-left.px]="level * 24">
+    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 border border-white shadow-sm overflow-hidden cursor-pointer hover:scale-110 transition-transform"
+         (click)="openProfilePreview(comment.authorId, $event)">
+      {{ comment.authorName?.charAt(0) || 'U' }}
+    </div>
+    
+    <div class="flex flex-col flex-1 min-w-0 group/comment">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-bold text-slate-800">{{ comment.authorName || 'User' }}</span>
+        <span class="text-[10px] text-slate-400 font-medium">{{ (comment.updatedAt || comment.createdAt) | date:'MMM d, h:mm a' }}</span>
+        @if (comment.isEdited) {
+          <span class="text-[10px] text-slate-300 italic ml-1">(edited)</span>
+        }
+      </div>
+
+      <div class="relative">
+        @if (editingCommentId() === comment.commentId) {
+          <div class="flex flex-col gap-2 p-1 bg-white border border-indigo-200 rounded-xl shadow-sm overflow-hidden">
+            <textarea [(ngModel)]="editCommentText" 
+                      class="w-full p-3 text-sm outline-none bg-transparent min-h-[80px] resize-none"
+                      (keydown.enter)="$event.preventDefault(); saveEditComment(comment.commentId)"
+                      (keydown.escape)="editingCommentId.set(null)"
+                      autofocus></textarea>
+            <div class="flex gap-2 justify-end p-2 bg-slate-50/50">
+              <button class="text-[10px] font-bold text-slate-400 hover:text-slate-600 px-3 py-1.5" (click)="editingCommentId.set(null)">Cancel</button>
+              <button class="text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-lg shadow-sm" (click)="saveEditComment(comment.commentId)">Save</button>
+            </div>
+          </div>
+        } @else {
+          <div class="text-[13px] text-slate-600 bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm group-hover/comment:border-slate-200 transition-all leading-relaxed break-words">
+            {{ comment.content }}
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center gap-4 mt-1.5 px-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+        <div class="flex items-center gap-1.5">
+          <button class="flex items-center gap-1 text-[10px] font-bold transition-all" 
+                  [class.text-indigo-600]="hasLiked(comment.commentId)"
+                  [class.text-slate-400]="!hasLiked(comment.commentId)"
+                  (click)="likeComment(comment.commentId)">
+            <mat-icon class="!text-sm">{{ hasLiked(comment.commentId) ? 'thumb_up' : 'thumb_up_off_alt' }}</mat-icon>
+            <span>{{ comment.likeCount || 0 }}</span>
+          </button>
+          <button class="flex items-center gap-1 text-[10px] font-bold transition-all"
+                  [class.text-rose-600]="hasDisliked(comment.commentId)"
+                  [class.text-slate-400]="!hasDisliked(comment.commentId)"
+                  (click)="dislikeComment(comment.commentId)">
+            <mat-icon class="!text-sm">{{ hasDisliked(comment.commentId) ? 'thumb_down' : 'thumb_down_off_alt' }}</mat-icon>
+            <span>{{ comment.dislikeCount || 0 }}</span>
+          </button>
+        </div>
+
+        <div class="h-1 w-1 bg-slate-300 rounded-full"></div>
+
+        <div class="flex items-center gap-3">
+          <button *ngIf="comment.authorId === currentUser()?.id" 
+                  class="text-[10px] font-bold text-slate-400 hover:text-slate-800 transition-colors"
+                  (click)="startEditComment(comment)">Edit</button>
+          <button *ngIf="comment.authorId === (currentUser()?.id || currentUser()?.userId)" 
+                  class="text-[10px] font-bold text-slate-400 hover:text-rose-600 transition-colors"
+                  (click)="deleteComment(comment.commentId)">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (comment.replies && comment.replies.length > 0) {
+    @for (reply of comment.replies; track reply.commentId) {
+      <ng-container *ngTemplateOutlet="commentTemplate; context: { $implicit: reply, level: level + 1 }"></ng-container>
+    }
+  }
+</ng-template>
+
+<!-- Modern Menus -->
+<mat-menu #priorityMenu="matMenu" class="!rounded-2xl !p-2 !min-w-[180px] shadow-xl border border-slate-100">
+  <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Priority</div>
+  <div class="flex flex-col gap-1">
+    <button mat-menu-item *ngFor="let p of priorities" (click)="onPriorityChange(p.value)" 
+            class="!rounded-xl hover:!bg-slate-50 transition-colors group">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full shadow-sm" [style.backgroundColor]="p.color"></div>
+        <span class="text-sm font-semibold text-slate-700">{{ p.label }}</span>
+        <mat-icon *ngIf="card()?.priority === p.value" class="!text-indigo-600 !ms-auto !text-lg">check</mat-icon>
+      </div>
+    </button>
+  </div>
+</mat-menu>
+
+<mat-menu #statusMenu="matMenu" class="!rounded-2xl !p-2 !min-w-[180px] shadow-xl border border-slate-100">
+  <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Workflow Status</div>
+  <div class="flex flex-col gap-1">
+    <button mat-menu-item *ngFor="let s of statuses" (click)="onStatusChange(s.value)" 
+            class="!rounded-xl hover:!bg-slate-50 transition-colors group">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full shadow-sm" [style.backgroundColor]="s.color"></div>
+        <span class="text-sm font-semibold text-slate-700">{{ s.label }}</span>
+        <mat-icon *ngIf="card()?.status === s.value" class="!text-indigo-600 !ms-auto !text-lg">check</mat-icon>
+      </div>
+    </button>
+  </div>
+</mat-menu>
+
+<mat-menu #coverMenu="matMenu" class="!rounded-2xl !p-0 shadow-2xl border border-slate-100 !min-w-[300px]">
+  <div class="p-4" (click)="$event.stopPropagation()">
+    <!-- Size Section -->
+    <div class="mb-6">
+      <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Size</h4>
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Top Cover Option -->
+        <button class="flex flex-col border-2 rounded-xl overflow-hidden transition-all text-left group"
+                [class.border-indigo-600]="card()?.coverSize === 'TOP' || (!card()?.coverSize && card()?.coverColor)"
+                [class.border-slate-100]="card()?.coverSize !== 'TOP' && (card()?.coverSize || !card()?.coverColor)"
+                (click)="updateCardField('coverSize', 'TOP')">
+          <div class="h-10 w-full" [style.background]="card()?.coverColor || '#f1f5f9'"></div>
+          <div class="p-2 bg-white flex-grow">
+            <div class="h-1.5 w-full bg-slate-100 rounded-full mb-1"></div>
+            <div class="h-1.5 w-2/3 bg-slate-100 rounded-full mb-2"></div>
+            <div class="flex gap-1">
+              <div class="h-2 w-4 bg-slate-100 rounded"></div>
+              <div class="h-2 w-4 bg-slate-100 rounded"></div>
+            </div>
+          </div>
+        </button>
+
+        <!-- Full Cover Option -->
+        <button class="flex flex-col border-2 rounded-xl overflow-hidden transition-all text-left group"
+                [class.border-indigo-600]="card()?.coverSize === 'FULL'"
+                [class.border-slate-100]="card()?.coverSize !== 'FULL'"
+                (click)="updateCardField('coverSize', 'FULL')">
+          <div class="flex-grow w-full p-2 flex flex-col justify-end gap-1.5" [style.background]="card()?.coverColor || '#f1f5f9'">
+            <div class="h-1.5 w-full bg-black/10 rounded-full"></div>
+            <div class="h-1.5 w-2/3 bg-black/10 rounded-full"></div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Remove Cover Button -->
+    <button class="w-full py-2 mb-6 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            (click)="removeCover()">
+      Remove cover
+    </button>
+
+    <!-- Colors Section -->
+    <div>
+      <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Colors</h4>
+      <div class="grid grid-cols-5 gap-2">
+        <button *ngFor="let color of coverColors" 
+                class="aspect-square rounded-lg shadow-sm hover:scale-110 transition-all flex items-center justify-center relative"
+                [style.backgroundColor]="color"
+                (click)="updateCoverColor(color)">
+          <mat-icon *ngIf="card()?.coverColor === color" class="!text-white !text-sm">check</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</mat-menu>
+
+<mat-menu #labelsMenu="matMenu" class="!rounded-2xl !p-3 shadow-xl border border-slate-100 !min-w-[280px]">
+  <div class="px-2 py-1 flex items-center justify-between mb-4">
+    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ isCreatingLabel() ? 'Create Label' : 'Labels' }}</span>
+    <button *ngIf="!isCreatingLabel()" (click)="isCreatingLabel.set(true); $event.stopPropagation()" 
+            class="text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded">Create New</button>
+    <button *ngIf="isCreatingLabel()" (click)="isCreatingLabel.set(false); $event.stopPropagation()" 
+            class="text-[10px] font-bold text-slate-400 hover:bg-slate-50 px-2 py-1 rounded">Back</button>
+  </div>
+
+  <div class="p-1" (click)="$event.stopPropagation()">
+    @if (!isCreatingLabel()) {
+      <input type="text" [ngModel]="labelSearchTerm()" (ngModelChange)="labelSearchTerm.set($event)" 
+             placeholder="Search labels..." 
+             class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-4 outline-none focus:bg-white focus:border-indigo-500 transition-all">
+      
+      <div class="flex flex-col gap-1 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+        @for (label of filteredLabels(); track label.labelId) {
+          <div class="flex items-center gap-2 group/label-item">
+            <button class="flex-grow flex items-center justify-between h-9 px-3 rounded-xl text-white text-xs font-bold shadow-sm transition-all hover:brightness-95"
+                    [style.background]="label.color"
+                    (click)="toggleLabel(label)">
+              <span>{{ label.name }}</span>
+              <mat-icon *ngIf="hasLabel(label.labelId)" class="!text-lg">check</mat-icon>
+            </button>
+            <button class="w-9 h-9 rounded-xl hover:bg-rose-50 text-slate-300 hover:text-rose-500 opacity-0 group-hover/label-item:opacity-100 transition-all flex items-center justify-center"
+                    (click)="deleteLabel(label.labelId)">
+              <mat-icon class="!text-lg">delete_outline</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-right-2 duration-200">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Label Name</label>
+          <input type="text" [ngModel]="newLabelName()" (ngModelChange)="newLabelName.set($event)" 
+                 placeholder="e.g. High Priority" 
+                 class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-500 transition-all">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Select Color</label>
+          <div class="grid grid-cols-4 gap-2">
+            @for (lc of labelColors; track lc.color) {
+              <button class="w-full aspect-square rounded-xl border-2 transition-all shadow-sm hover:scale-110"
+                      [style.backgroundColor]="lc.color"
+                      [class.border-white]="selectedLabelColor() !== lc.color"
+                      [class.border-indigo-500]="selectedLabelColor() === lc.color"
+                      [class.ring-2]="selectedLabelColor() === lc.color"
+                      [class.ring-indigo-100]="selectedLabelColor() === lc.color"
+                      (click)="selectedLabelColor.set(lc.color)"></button>
+            }
+          </div>
+        </div>
+
+        <button class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all" 
+                (click)="createNewLabel()">Create and Apply</button>
+      </div>
+    }
+  </div>
+</mat-menu>
+
+<mat-menu #moreMenu="matMenu" class="!rounded-2xl !p-2 !min-w-[180px] shadow-xl border border-slate-100">
+  <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Card Actions</div>
+  <div class="flex flex-col gap-1">
+    <button mat-menu-item class="!rounded-xl hover:!bg-slate-50 transition-colors">
+      <div class="flex items-center gap-3">
+        <mat-icon class="!text-slate-400 !text-lg">share</mat-icon>
+        <span class="text-sm font-semibold text-slate-700">Share card</span>
+      </div>
+    </button>
+    <button mat-menu-item class="!rounded-xl hover:!bg-slate-50 transition-colors">
+      <div class="flex items-center gap-3">
+        <mat-icon class="!text-slate-400 !text-lg">content_copy</mat-icon>
+        <span class="text-sm font-semibold text-slate-700">Duplicate</span>
+      </div>
+    </button>
+    <div class="h-px bg-slate-100 my-1 mx-2"></div>
+    <button mat-menu-item class="!rounded-xl hover:!bg-rose-50 transition-colors group">
+      <div class="flex items-center gap-3">
+        <mat-icon class="!text-slate-400 group-hover:!text-rose-500 !text-lg">delete_outline</mat-icon>
+        <span class="text-sm font-semibold text-slate-700 group-hover:text-rose-600">Delete card</span>
+      </div>
+    </button>
+  </div>
+</mat-menu>
+
+<mat-menu #assigneeMenu="matMenu" class="!rounded-2xl !p-3 shadow-2xl border border-slate-100 !min-w-[300px]">
+  <div class="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Members</div>
+  
+  <div class="p-1" (click)="$event.stopPropagation()">
+    <!-- Search Input -->
+    <input type="text" [ngModel]="memberSearchQuery()" (ngModelChange)="onMemberSearchChange($event)" 
+           placeholder="Search by email or name..." 
+           class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-4 outline-none focus:bg-white focus:border-indigo-500 transition-all">
+    
+    <div class="flex flex-col gap-4 max-h-80 overflow-y-auto custom-scrollbar pr-1">
+      
+      <!-- Section 1: Card Members (Assigned) -->
+      @if (filteredCardMembers().length > 0) {
+        <div>
+          <div class="px-2 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Card Members</div>
+          <div class="flex flex-col gap-1.5">
+            @for (m of filteredCardMembers(); track m.userId) {
+              <div class="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 transition-all">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                    {{ m.fullName?.charAt(0) || 'U' }}
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold text-slate-700 truncate">{{ m.fullName }}</span>
+                    <span class="text-[10px] text-slate-400 truncate">{{ m.email }}</span>
+                  </div>
+                </div>
+                <button (click)="toggleCardMember(m.userId)" 
+                        class="px-2.5 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-[10px] font-bold transition-all border border-rose-100 shrink-0">
+                  Remove
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Section 2: Board Members (Unassigned) -->
+      @if (filteredUnassignedBoardMembers().length > 0) {
+        <div>
+          <div class="px-2 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Board Members</div>
+          <div class="flex flex-col gap-1.5">
+            @for (m of filteredUnassignedBoardMembers(); track m.userId) {
+              <div class="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 transition-all">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-slate-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                    {{ m.fullName?.charAt(0) || 'U' }}
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold text-slate-700 truncate">{{ m.fullName }}</span>
+                    <span class="text-[10px] text-slate-400 truncate">{{ m.email }}</span>
+                  </div>
+                </div>
+                <button (click)="toggleCardMember(m.userId)" 
+                        class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-[10px] font-bold transition-all border border-indigo-100 shrink-0">
+                  Add
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Section 3: Global Zask Users -->
+      @if (memberSearchQuery() && globalSearchResults().length > 0) {
+        <div>
+          <div class="px-2 py-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Zask Users</div>
+          <div class="flex flex-col gap-1.5">
+            @for (u of globalSearchResults(); track (u.userId || u.id)) {
+              <div class="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 transition-all">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                    {{ u.fullName?.charAt(0) || 'U' }}
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold text-slate-700 truncate">{{ u.fullName }}</span>
+                    <span class="text-[10px] text-slate-400 truncate">{{ u.email }}</span>
+                  </div>
+                </div>
+                <button (click)="toggleCardMember(u.userId || u.id)" 
+                        class="px-2.5 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-[10px] font-bold transition-all border border-emerald-100 shrink-0">
+                  Add
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (filteredCardMembers().length === 0 && filteredUnassignedBoardMembers().length === 0 && globalSearchResults().length === 0) {
+        <div class="text-center py-6 text-xs text-slate-400 font-medium">
+          No members found
+        </div>
+      }
+
+    </div>
+  </div>
+</mat-menu>
+
+
+<mat-menu #datesMenu="matMenu" class="!rounded-2xl !max-w-none shadow-2xl border border-slate-100">
+  <div class="p-4 w-[320px] bg-white rounded-xl font-sans" (click)="$event.stopPropagation()">
+    <!-- Header: Month and Year, Prev and Next Arrows -->
+    <div class="flex items-center justify-between mb-4">
+      <button mat-icon-button (click)="prevMonth()" class="!w-8 !h-8 text-slate-500 hover:text-slate-800 cursor-pointer">
+        <mat-icon class="!text-lg">chevron_left</mat-icon>
+      </button>
+      <span class="text-sm font-bold text-slate-700">
+        {{ monthNames[viewedMonth] }} {{ viewedYear }}
+      </span>
+      <button mat-icon-button (click)="nextMonth()" class="!w-8 !h-8 text-slate-500 hover:text-slate-800 cursor-pointer">
+        <mat-icon class="!text-lg">chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <!-- 7 Column Grid of Weekday Headers -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">
+      <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+    </div>
+
+    <!-- 7 Column Grid of Days -->
+    <div class="grid grid-cols-7 gap-1 mb-4">
+      @for (day of getDaysInMonth(viewedYear, viewedMonth); track $index) {
+        @if (day.isPadding) {
+          <div class="w-8 h-8"></div>
+        } @else {
+          <button class="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer"
+                  [ngClass]="{
+                    'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20': isDaySelected(day.dateStr),
+                    'border border-indigo-600 text-indigo-600': day.isToday && !isDaySelected(day.dateStr),
+                    'text-slate-700 hover:bg-slate-100': !isDaySelected(day.dateStr) && !day.isToday
+                  }"
+                  (click)="selectCalendarDate(day.dateStr)">
+            {{ day.day }}
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Date Inputs Section -->
+    <div class="space-y-3 pt-3 border-t border-slate-100">
+      <!-- Start Date Row -->
+      <div class="flex items-center gap-2.5">
+        <input type="checkbox" [(ngModel)]="calendarStartChecked" (change)="onStartCheckChange()" 
+               class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer">
+        <div class="flex-grow">
+          <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Start Date</label>
+          <input type="date" [(ngModel)]="calendarStartDateStr" [disabled]="!calendarStartChecked"
+                 (focus)="activeDateField = 'start'"
+                 class="w-full text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none disabled:bg-slate-50 disabled:text-slate-400">
+        </div>
+      </div>
+
+      <!-- Due Date Row -->
+      <div class="flex items-center gap-2.5">
+        <input type="checkbox" [(ngModel)]="calendarDueChecked" (change)="onDueCheckChange()" 
+               class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer">
+        <div class="flex-grow grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Due Date</label>
+            <input type="date" [(ngModel)]="calendarDueDateStr" [disabled]="!calendarDueChecked"
+                   (focus)="activeDateField = 'due'"
+                   class="w-full text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none disabled:bg-slate-50 disabled:text-slate-400">
+          </div>
+          <div>
+            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Time</label>
+            <select [(ngModel)]="calendarDueTimeStr" [disabled]="!calendarDueChecked"
+                    class="w-full text-xs border border-slate-200 rounded px-2 py-1.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer bg-white">
+              @for (time of timeOptions; track time) {
+                <option [value]="time">{{ time }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-2 justify-end mt-4 pt-3 border-t border-slate-100">
+      <button class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              (click)="removeDates()">Remove</button>
+      <button class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/20 transition-colors cursor-pointer"
+              (click)="saveDates()">Save</button>
+    </div>
+  </div>
+</mat-menu>
+
+<mat-menu #checklistMenu="matMenu" class="!rounded-2xl !p-4 shadow-xl border border-slate-100 !min-w-[280px]">
+  <div class="px-1 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">New Checklist</div>
+  <div class="flex flex-col gap-4" (click)="$event.stopPropagation()">
+    <input type="text" [(ngModel)]="newChecklistTitle" placeholder="Checklist Title" 
+           class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all">
+    <button class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all cursor-pointer" 
+            (click)="addChecklist()">Add</button>
+  </div>
+</mat-menu>
+
+<mat-menu #attachmentMenu="matMenu" class="!rounded-2xl !p-4 shadow-xl border border-slate-100 !min-w-[280px]">
+  <div class="px-1 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Attach File</div>
+  <div class="flex flex-col gap-4">
+    <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden">
+    <button class="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-slate-50 hover:border-indigo-300 transition-all group"
+            (click)="fileInput.click()">
+      <mat-icon class="!text-3xl text-slate-400 group-hover:text-indigo-500 transition-colors">upload_file</mat-icon>
+      <span class="text-xs font-bold text-slate-500 group-hover:text-indigo-600">Select from Computer</span>
+    </button>
+  </div>
+</mat-menu>

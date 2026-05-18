@@ -11,4 +11,5 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Integer> {
     List<Workspace> findByVisibility(String visibility);
     boolean existsByNameAndOwnerId(String name, int ownerId);
     long countByOwnerId(int ownerId);
+    List<Workspace> findByNameContainingIgnoreCase(String name);
 }

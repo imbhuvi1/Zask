@@ -54,10 +54,57 @@ export class AuthService {
 
   private setAuth(response: AuthResponse) {
     localStorage.setItem('token', response.token);
-    // Depending on backend, user payload might be nested or direct
-    const user = response.user || { username: 'User' } as User; 
+    
+    // AuthResponse is flat from Java backend, map it to User object:
+    const user: User = { 
+      id: response.userId,
+      userId: response.userId,
+      email: response.email,
+      role: response.role,
+      fullName: response.fullName || 'User',
+      username: response.fullName || 'User',
+      active: true
+    }; 
+    
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
+  }
+
+  getProfile(userId: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/profile/${userId}`);
+  }
+
+  updateProfile(userId: number, data: { fullName?: string, username?: string, avatarUrl?: string }): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/profile/${userId}`, data).pipe(
+      tap(updatedUser => {
+        // Update local state if the user updating is the currently logged in user
+        if (this.currentUser()?.userId === userId) {
+          const newUser = { ...this.currentUser()!, ...updatedUser };
+          localStorage.setItem('user', JSON.stringify(newUser));
+          this.currentUser.set(newUser);
+        }
+      })
+    );
+  }
+
+  changePassword(userId: number, data: { oldPassword?: string, newPassword?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/password/${userId}`, data);
+  }
+
+  deactivateAccount(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/deactivate/${userId}`);
+  }
+
+  searchUsers(name: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/search`, { params: { name } });
+  }
+
+  getUserByEmail(email: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/user`, { params: { email } });
+  }
+
+  getUserById(userId: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/profile/${userId}`);
   }
 }

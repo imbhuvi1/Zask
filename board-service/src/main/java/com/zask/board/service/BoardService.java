@@ -9,11 +9,15 @@ public interface BoardService {
     Board getBoardById(int boardId);
     List<Board> getBoardsByWorkspace(int workspaceId);
     List<Board> getBoardsByMember(int userId);
+    List<Board> getPublicBoards();
     Board updateBoard(int boardId, BoardRequest request);
     void closeBoard(int boardId);
     void deleteBoard(int boardId);
+    void deleteBoardsByWorkspace(int workspaceId);
     BoardMember addMember(int boardId, BoardMemberRequest request);
     void removeMember(int boardId, int userId);
+    void removeMemberFromWorkspaceBoards(int workspaceId, int userId);
     void updateMemberRole(int boardId, int userId, String role);
     List<BoardMember> getMembers(int boardId);
+    List<Board> searchBoards(String name);
 }

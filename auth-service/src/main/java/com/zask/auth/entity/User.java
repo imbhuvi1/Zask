@@ -37,10 +37,18 @@ public class User {
 
     private String provider;
 
+    private String phone;
+
     @Column(name = "is_active")
     private boolean active;
 
     private LocalDateTime createdAt;
+    
+    @Column(name = "reset_token")
+    private String resetToken;
+    
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
 
     @PrePersist
     public void prePersist() {

@@ -31,6 +31,7 @@ public class Notification {
 
     private String relatedType; // CARD or BOARD
 
+    @com.fasterxml.jackson.annotation.JsonProperty("isRead")
     private boolean isRead;
 
     private LocalDateTime createdAt;

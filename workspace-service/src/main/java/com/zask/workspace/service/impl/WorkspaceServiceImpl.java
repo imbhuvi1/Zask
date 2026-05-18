@@ -2,8 +2,11 @@ package com.zask.workspace.service.impl;
 
 import com.zask.workspace.dto.*;
 import com.zask.workspace.entity.*;
+import com.zask.workspace.exception.ResourceNotFoundException;
+import com.zask.workspace.exception.ValidationException;
 import com.zask.workspace.repository.*;
 import com.zask.workspace.service.WorkspaceService;
+import com.zask.workspace.annotation.AuditAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private WorkspaceMemberRepository memberRepository;
 
     @Override
+    @AuditAction(action = "WORKSPACE_CREATED", entityType = "WORKSPACE")
     public Workspace createWorkspace(WorkspaceRequest request) {
         Workspace workspace = Workspace.builder()
                 .name(request.getName())
@@ -44,7 +48,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public Workspace getById(int workspaceId) {
         return workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new RuntimeException("Workspace not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
     }
 
     @Override
@@ -62,6 +66,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @AuditAction(action = "WORKSPACE_UPDATED", entityType = "WORKSPACE")
     public Workspace updateWorkspace(int workspaceId, WorkspaceRequest request) {
         Workspace workspace = getById(workspaceId);
         if (request.getName() != null) workspace.setName(request.getName());
@@ -73,6 +78,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     @Transactional
+    @AuditAction(action = "WORKSPACE_DELETED", entityType = "WORKSPACE")
     public void deleteWorkspace(int workspaceId) {
         getById(workspaceId);
         memberRepository.findByWorkspaceId(workspaceId)
@@ -81,10 +87,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @AuditAction(action = "MEMBER_ADDED", entityType = "WORKSPACE_MEMBER")
     public WorkspaceMember addMember(int workspaceId, WorkspaceMemberRequest request) {
         getById(workspaceId);
         if (memberRepository.existsByWorkspaceIdAndUserId(workspaceId, request.getUserId()))
-            throw new RuntimeException("User is already a member");
+            throw new ValidationException("User is already a member");
 
         WorkspaceMember member = WorkspaceMember.builder()
                 .workspaceId(workspaceId)
@@ -104,7 +111,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public void updateMemberRole(int workspaceId, int userId, String role) {
         WorkspaceMember member = memberRepository
                 .findByWorkspaceIdAndUserId(workspaceId, userId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
         member.setRole(role);
         memberRepository.save(member);
     }
@@ -112,5 +119,15 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public List<WorkspaceMember> getMembers(int workspaceId) {
         return memberRepository.findByWorkspaceId(workspaceId);
+    }
+
+    @Override
+    public List<Workspace> getAllWorkspaces() {
+        return workspaceRepository.findAll();
+    }
+
+    @Override
+    public List<Workspace> searchWorkspaces(String name) {
+        return workspaceRepository.findByNameContainingIgnoreCase(name);
     }
 }

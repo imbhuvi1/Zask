@@ -15,4 +15,6 @@ public interface WorkspaceService {
     void removeMember(int workspaceId, int userId);
     void updateMemberRole(int workspaceId, int userId, String role);
     List<WorkspaceMember> getMembers(int workspaceId);
+    List<Workspace> getAllWorkspaces();
+    List<Workspace> searchWorkspaces(String name);
 }

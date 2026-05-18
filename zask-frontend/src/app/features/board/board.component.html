@@ -1,0 +1,330 @@
+
+<!-- Closed Board Message -->
+<div *ngIf="!isLoading() && board()?.isClosed" class="h-[calc(100vh-130px)] flex flex-col items-center justify-center bg-gray-50 p-6">
+  <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md text-center border border-gray-100">
+    <mat-icon class="!w-16 !h-16 !text-[64px] text-gray-300 mb-4">archive</mat-icon>
+    <h2 class="text-2xl font-bold text-[#1e293b] mb-2">{{ board()?.name }} is closed</h2>
+    <p class="text-gray-500 mb-8">This board is archived. You can't make any changes until it's reopened by an administrator.</p>
+    <div class="flex flex-col gap-3">
+      <button mat-flat-button color="primary" class="!rounded-lg !py-6 !font-bold" *ngIf="isBoardAdmin()" (click)="reopenBoard()">
+        Reopen Board
+      </button>
+      <button mat-button class="!text-gray-500 hover:!bg-gray-100" [routerLink]="['/dashboard']">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Board Header Strip -->
+<div *ngIf="board() && !board()?.isClosed" 
+     class="flex items-center justify-between px-4 py-2 border-b border-white/10 z-20 transition-all duration-500 bg-cover bg-center relative"
+     [style.background]="board()?.background?.startsWith('http') ? 'url(' + board()?.background + ')' : (board()?.background || '#f1f2f4')">
+  
+  <!-- Overlay for the strip -->
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-md z-0"></div>
+
+  <div class="flex items-center gap-2 relative z-10">
+    <!-- Board Name (Left side) -->
+    <h1 class="text-lg font-bold px-3 py-1 hover:bg-white/20 rounded cursor-pointer transition-colors text-white">
+      {{ board()?.name }}
+    </h1>
+  </div>
+
+  <div class="flex items-center gap-3 relative z-10">
+    <!-- Visibility Button -->
+    <button (click)="openVisibilityDialog()"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-white/20 rounded text-sm font-medium transition-colors text-white"
+            [title]="board()?.visibility | titlecase">
+      <mat-icon class="!w-5 !h-5 !text-[20px]">
+        {{ board()!.visibility === 'PUBLIC' ? 'public' : (board()!.visibility === 'WORKSPACE' ? 'people' : 'lock') }}
+      </mat-icon>
+    </button>
+
+    <div class="h-4 w-px bg-white/20 mx-1"></div>
+
+    <!-- Member Avatars -->
+    <div class="flex -space-x-2 overflow-hidden">
+      <div *ngFor="let m of boardMembers().slice(0, 5)" 
+           class="inline-block h-7 w-7 rounded-full ring-2 ring-transparent cursor-pointer hover:-translate-y-1 transition-transform"
+           [style.background-color]="getAvatarColor(m.userId)"
+           [title]="m.fullName || 'User ' + m.userId"
+           (click)="profilePreviewService.open(m.userId, $event)">
+        <div class="flex items-center justify-center h-full w-full text-[10px] font-bold text-white uppercase">
+          {{ (m.fullName || 'U').charAt(0) }}
+        </div>
+      </div>
+      <div *ngIf="boardMembers().length > 5" 
+           class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-[10px] font-medium text-white">
+        +{{ boardMembers().length - 5 }}
+      </div>
+    </div>
+
+    <!-- Share Button -->
+    <button (click)="goToMembers()" 
+            class="bg-white text-[#172b4d] hover:bg-gray-100 px-3 py-1.5 rounded text-sm font-semibold flex items-center gap-2 transition-all shadow-sm">
+      <mat-icon class="!w-4 !h-4 !text-[18px]">person_add</mat-icon>
+      Share
+    </button>
+
+    <div class="h-4 w-px bg-white/20 mx-1"></div>
+
+    <!-- Board Menu Button -->
+    <button mat-icon-button class="!w-8 !h-8 !leading-8 hover:!bg-white/20 !text-white" [matMenuTriggerFor]="boardMenu">
+      <mat-icon class="!text-[20px]">more_horiz</mat-icon>
+    </button>
+
+    <mat-menu #boardMenu="matMenu">
+      <button mat-menu-item (click)="openBoardMenu()">
+        <mat-icon>settings</mat-icon>
+        <span>Board settings</span>
+      </button>
+      <button mat-menu-item (click)="goToMembers()">
+        <mat-icon>people</mat-icon>
+        <span>Manage members</span>
+      </button>
+      <button mat-menu-item (click)="openVisibilityDialog()">
+        <mat-icon>public</mat-icon>
+        <span>Change visibility</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="closeBoard()" class="text-red-600">
+        <mat-icon class="!text-red-600">delete_outline</mat-icon>
+        <span>Close board</span>
+      </button>
+    </mat-menu>
+  </div>
+</div>
+
+<!-- Board Area -->
+<div *ngIf="!board()?.isClosed" 
+     class="h-[calc(100vh-108px)] overflow-x-auto overflow-y-hidden p-6 flex flex-col font-sans transition-all duration-500 bg-cover bg-center"
+     [style.background]="board()?.background?.startsWith('http') ? 'url(' + board()?.background + ')' : (board()?.background || '#f1f2f4')"
+     [style.background-size]="'cover'">
+  
+  <div class="flex justify-center mt-24" *ngIf="isLoading()">
+    <mat-spinner diameter="40" color="accent"></mat-spinner>
+  </div>
+
+  <div class="flex items-start h-full" *ngIf="!isLoading()" cdkDropListGroup cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="dropList($event)" [cdkDropListDisabled]="!canEdit()">
+    
+    <!-- Render each List -->
+    <div class="w-[280px] mr-3 shrink-0 flex flex-col max-h-full" *ngFor="let listGroup of boardLists()" cdkDrag [cdkDragDisabled]="!canEdit()">
+      <div class="bg-[#ebecf0] rounded-xl flex flex-col max-h-full shadow-md border-0">
+        
+        <!-- List Header -->
+        <div class="py-2.5 px-4 min-h-[20px] cursor-grab active:cursor-grabbing flex justify-between items-center" cdkDragHandle>
+          <h3 class="m-0 text-sm font-bold text-[#172b4d]">{{ listGroup.list.name }}</h3>
+          <button class="w-8 h-8 flex items-center justify-center rounded text-gray-500 hover:bg-gray-200 transition-colors">
+            <mat-icon class="!text-[20px] !w-5 !h-5">more_horiz</mat-icon>
+          </button>
+        </div>
+
+        <!-- Cards Container (Droppable area) -->
+        <div class="flex-1 overflow-y-auto overflow-x-hidden p-2 min-h-[10px]" 
+             [id]="'list-' + listGroup.list.listId"
+             cdkDropList 
+             [cdkDropListData]="listGroup.cards" 
+             (cdkDropListDropped)="dropCard($event)"
+             [cdkDropListDisabled]="!canEdit()">
+             
+          <div class="rounded shadow-sm border-0 cursor-pointer mb-2 max-w-[280px] min-h-[32px] overflow-hidden relative z-0 p-3 transition-all group flex flex-col border-b border-gray-300" 
+               [ngClass]="{'bg-white hover:bg-gray-50': card.coverSize !== 'FULL', 'text-white font-bold': card.coverSize === 'FULL', 'hover:brightness-95': card.coverSize === 'FULL'}"
+               [style.backgroundColor]="card.coverSize === 'FULL' ? card.coverColor : '#ffffff'"
+               *ngFor="let card of listGroup.cards" cdkDrag [cdkDragDisabled]="!canEdit()" (click)="openCardDetails(card)">
+            
+            <!-- Top Cover Color -->
+            <div *ngIf="card.coverColor && (!card.coverSize || card.coverSize === 'TOP')" class="h-8 -mt-3 -mx-3 mb-3" [style.background]="card.coverColor"></div>
+            
+            <!-- Labels (Compact) -->
+            <div class="flex flex-wrap gap-1 mb-2" *ngIf="card.coverSize !== 'FULL'">
+               <div *ngFor="let labelId of cardLabels()[card.cardId]" 
+                    [style.background]="getLabelColor(labelId)" 
+                    class="h-2 w-10 rounded-full shadow-sm"
+                    [title]="getLabelName(labelId)">
+               </div>
+            </div>
+
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2 flex-grow min-w-0 w-full">
+                <!-- Hover Check Button -->
+                <button *ngIf="canEdit() && editingCardId !== card.cardId" 
+                        class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all group-hover:border-green-500 hover:bg-green-50 shrink-0 mt-0.5"
+                        [ngClass]="{
+                          'bg-green-500 !border-green-500 text-white': card.status === 'DONE',
+                          'opacity-0 group-hover:opacity-100': card.status !== 'DONE',
+                          'border-gray-300': card.coverSize !== 'FULL',
+                          'border-white/60 text-white': card.coverSize === 'FULL' && card.status !== 'DONE'
+                        }"
+                        (click)="toggleCardDone($event, card)">
+                  <mat-icon *ngIf="card.status === 'DONE'" class="!text-[12px] !w-3 !h-3">check</mat-icon>
+                  <mat-icon *ngIf="card.status !== 'DONE'" class="!text-[12px] !w-3 !h-3 opacity-0 group-hover:opacity-100 text-green-600">check</mat-icon>
+                </button>
+
+                <div *ngIf="editingCardId !== card.cardId" 
+                     class="flex-grow min-w-0 text-[14px] leading-tight font-medium break-words"
+                     [ngClass]="{
+                       'line-through': card.status === 'DONE',
+                       'text-gray-400': card.status === 'DONE' && card.coverSize !== 'FULL',
+                       'text-white/60': card.status === 'DONE' && card.coverSize === 'FULL',
+                       'text-[#172b4d]': card.coverSize !== 'FULL' && card.status !== 'DONE',
+                       'text-white': card.coverSize === 'FULL' && card.status !== 'DONE'
+                     }">
+                  {{ card.title }}
+                </div>
+
+                <div *ngIf="editingCardId === card.cardId" class="flex flex-col gap-1.5 w-full" (click)="$event.stopPropagation()">
+                  <input type="text" 
+                         [(ngModel)]="editCardTitle"
+                         class="w-full p-1.5 border border-blue-500 rounded bg-white text-[14px] leading-tight font-medium text-slate-800 outline-none"
+                         (keyup.enter)="saveCardTitle(card)"
+                         (keyup.escape)="cancelEditCardTitle()">
+                  <div class="flex items-center gap-1.5">
+                    <button class="px-2.5 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
+                            (click)="saveCardTitle(card)">
+                      Save
+                    </button>
+                    <button class="px-2.5 py-1 text-[11px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                            (click)="cancelEditCardTitle()">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Context menu trigger button -->
+              <button *ngIf="canEdit() && editingCardId !== card.cardId"
+                      mat-icon-button 
+                      [matMenuTriggerFor]="cardContextMenu" 
+                      [matMenuTriggerData]="{ card: card }"
+                      class="opacity-0 group-hover:opacity-100 transition-opacity !w-6 !h-6 !leading-6 rounded shrink-0 -mt-0.5 -mr-1 hover:bg-black/5 flex items-center justify-center"
+                      [ngClass]="card.coverSize === 'FULL' ? 'hover:bg-white/10 !text-white' : 'hover:bg-slate-100 !text-slate-500'"
+                      (click)="$event.stopPropagation()">
+                <mat-icon class="!text-[16px] !w-4 !h-4">more_horiz</mat-icon>
+              </button>
+            </div>
+            
+            <!-- Badge Section -->
+            <div class="mt-3 flex items-center justify-between gap-2" *ngIf="card.coverSize !== 'FULL'">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Start Date Badge -->
+                <div *ngIf="card.startDate" class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-500 hover:bg-gray-100">
+                  <mat-icon class="!text-[12px] !w-3 !h-3">date_range</mat-icon>
+                  {{ card.startDate | date:'MMM d' }}
+                </div>
+
+                <!-- Overdue/Due Date Badge -->
+                <div *ngIf="card.dueDate && (card.status === 'DONE' || isOverdue(card) || isDueSoon(card.dueDate))" 
+                     class="flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-bold"
+                     [ngClass]="card.status === 'DONE' ? 'bg-green-50 text-green-700 border-green-200' : (isOverdue(card) ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200')">
+                  <mat-icon class="!text-[12px] !w-3 !h-3">schedule</mat-icon>
+                  {{ card.dueDate | date:'MMM d' }}
+                </div>
+
+                <!-- Checklist Badge -->
+                <div *ngIf="cardChecklistStats()[card.cardId] && cardChecklistStats()[card.cardId].count > 0" 
+                     class="flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-bold text-gray-500 bg-slate-50 border-slate-100">
+                  <mat-icon class="!text-[12px] !w-3 !h-3">check_box</mat-icon>
+                  <span>{{ cardChecklistStats()[card.cardId].completed }} of {{ cardChecklistStats()[card.cardId].total }}</span>
+                </div>
+
+                <!-- Priority Badge -->
+                <div *ngIf="card.priority && card.priority !== 'MEDIUM'" class="flex items-center" [title]="'Priority: ' + card.priority">
+                   <mat-icon class="!text-[16px] !w-4 !h-4" [ngClass]="getPriorityClass(card.priority)">
+                     {{ getPriorityIcon(card.priority) }}
+                   </mat-icon>
+                </div>
+
+                <!-- Description Icon -->
+                <mat-icon *ngIf="card.description" class="!text-[14px] !w-3.5 !h-3.5 text-gray-500" title="This card has a description.">notes</mat-icon>
+              </div>
+
+              <!-- Assignee Avatar -->
+              <div class="flex items-center" *ngIf="card.assigneeId">
+                <div class="w-6 h-6 rounded-full bg-[#dfe1e6] text-[#172b4d] flex items-center justify-center text-[10px] font-bold shrink-0 border border-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                     [style.background]="getAvatarColor(card.assigneeId)"
+                     (click)="profilePreviewService.open(card.assigneeId, $event); $event.stopPropagation()">
+                  {{ 'U' }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Add Card Input Section -->
+        <div class="p-2 pt-0" *ngIf="canEdit()">
+          <div *ngIf="!showAddCardForm[listGroup.list.listId]">
+            <button class="w-full flex items-center gap-2 px-2 py-1.5 text-gray-500 hover:bg-gray-200 hover:text-[#172b4d] rounded text-sm transition-colors text-left"
+                    (click)="showAddCardForm[listGroup.list.listId] = true">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+              Add a card
+            </button>
+          </div>
+          <div *ngIf="showAddCardForm[listGroup.list.listId]" class="flex flex-col gap-2">
+            <textarea placeholder="Enter a title for this card..." 
+                      class="w-full min-h-[60px] p-2 bg-white rounded shadow-sm text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
+                      [(ngModel)]="newCardTitles[listGroup.list.listId]" 
+                      (keyup.enter)="addCard(listGroup.list.listId)"
+                      autofocus></textarea>
+            <div class="flex items-center gap-2 mb-1">
+              <button mat-flat-button color="primary" class="!bg-blue-600 !h-8 !px-3 !text-sm" (click)="addCard(listGroup.list.listId)">Add card</button>
+              <button mat-icon-button class="!text-gray-500 !w-8 !h-8" (click)="showAddCardForm[listGroup.list.listId] = false">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add List Section -->
+    <div *ngIf="canEdit()" class="w-[280px] shrink-0">
+      <div *ngIf="!showAddListForm" 
+           class="bg-white/20 hover:bg-white/30 p-3 rounded-xl cursor-pointer transition-colors backdrop-blur-sm"
+           (click)="showAddListForm = true">
+        <div class="flex items-center gap-2 text-white font-medium">
+          <mat-icon>add</mat-icon>
+          Add another list
+        </div>
+      </div>
+
+      <div *ngIf="showAddListForm" class="bg-[#ebecf0] p-1.5 rounded shadow-lg flex flex-col gap-2">
+        <input type="text" placeholder="Enter list name..." 
+               class="w-full p-2 border-2 border-blue-600 rounded bg-white text-sm outline-none"
+               [(ngModel)]="newListTitle" 
+               (keyup.enter)="addList()"
+               autofocus>
+        <div class="flex items-center gap-2">
+          <button mat-flat-button color="primary" class="!bg-blue-600 !h-8 !px-3 !text-sm" (click)="addList()">Add list</button>
+          <button mat-icon-button class="!text-gray-500 !w-8 !h-8" (click)="showAddListForm = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Card Context Menu -->
+<mat-menu #cardContextMenu="matMenu">
+  <ng-template matMenuContent let-card="card">
+    <button mat-menu-item (click)="startEditCardTitle(card)">
+      <mat-icon class="!text-slate-500">edit</mat-icon>
+      <span>Edit Name</span>
+    </button>
+    <button mat-menu-item (click)="openMoveCardDialog(card)">
+      <mat-icon class="!text-slate-500">swap_horiz</mat-icon>
+      <span>Move Card</span>
+    </button>
+    <button mat-menu-item (click)="openCopyCardDialog(card)">
+      <mat-icon class="!text-slate-500">content_copy</mat-icon>
+      <span>Copy Card</span>
+    </button>
+    <button mat-menu-item (click)="archiveCard(card)" class="text-red-600">
+      <mat-icon class="!text-red-600">archive</mat-icon>
+      <span>Archive Card</span>
+    </button>
+  </ng-template>
+</mat-menu>

@@ -2,6 +2,8 @@ package com.zask.comment.service.impl;
 
 import com.zask.comment.dto.*;
 import com.zask.comment.entity.*;
+import com.zask.comment.exception.ResourceNotFoundException;
+import com.zask.comment.exception.ValidationException;
 import com.zask.comment.repository.*;
 import com.zask.comment.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private AttachmentRepository attachmentRepository;
 
+    @Autowired
+    private ReactionRepository reactionRepository;
+
     @Override
     public Comment addComment(CommentRequest request) {
         Comment comment = Comment.builder()
@@ -31,18 +36,18 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<Comment> getByCard(int cardId) {
-        return commentRepository.findByCardId(cardId);
+        return commentRepository.findByCardIdAndIsDeletedFalse(cardId);
     }
 
     @Override
     public Comment getCommentById(int commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
     }
 
     @Override
     public List<Comment> getReplies(int parentCommentId) {
-        return commentRepository.findByParentCommentId(parentCommentId);
+        return commentRepository.findByParentCommentIdAndIsDeletedFalse(parentCommentId);
     }
 
     @Override
@@ -86,6 +91,37 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public long getCommentCount(int cardId) {
-        return commentRepository.countByCardId(cardId);
+        return commentRepository.countByCardIdAndIsDeletedFalse(cardId);
+    }
+
+    @Override
+    public Comment likeComment(int commentId) {
+        Comment comment = getCommentById(commentId);
+        comment.setLikeCount(comment.getLikeCount() + 1);
+        return commentRepository.save(comment);
+    }
+
+    @Override
+    public Reaction addReaction(int commentId, int userId, String emoji) {
+        if (reactionRepository.existsByCommentIdAndUserIdAndEmoji(commentId, userId, emoji)) {
+            throw new ValidationException("Reaction already exists");
+        }
+        Reaction reaction = Reaction.builder()
+                .commentId(commentId)
+                .userId(userId)
+                .emoji(emoji)
+                .build();
+        return reactionRepository.save(reaction);
+    }
+
+    @Override
+    @Transactional
+    public void removeReaction(int commentId, int userId, String emoji) {
+        reactionRepository.deleteByCommentIdAndUserIdAndEmoji(commentId, userId, emoji);
+    }
+
+    @Override
+    public List<Reaction> getReactions(int commentId) {
+        return reactionRepository.findByCommentId(commentId);
     }
 }

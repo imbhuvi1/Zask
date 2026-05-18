@@ -2,7 +2,6 @@ package com.zask.card.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,9 +32,9 @@ public class Card {
 
     private String status; // TO_DO, IN_PROGRESS, IN_REVIEW, DONE
 
-    private LocalDate dueDate;
+    private LocalDateTime dueDate;
 
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     private int assigneeId;
 
@@ -44,6 +43,7 @@ public class Card {
     private boolean isArchived;
 
     private String coverColor;
+    private String coverSize; // TOP, FULL
 
     private LocalDateTime createdAt;
 

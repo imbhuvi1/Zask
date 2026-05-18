@@ -1,5 +1,6 @@
 package com.zask.board.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -29,7 +30,11 @@ public class Board {
 
     private int createdById;
 
+    @JsonProperty("isClosed")
     private boolean isClosed;
+
+    @JsonProperty("isStarred")
+    private boolean isStarred;
 
     private LocalDateTime createdAt;
 
@@ -38,5 +43,6 @@ public class Board {
         this.createdAt = LocalDateTime.now();
         if (this.visibility == null) this.visibility = "PRIVATE";
         this.isClosed = false;
+        this.isStarred = false;
     }
 }

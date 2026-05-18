@@ -2,6 +2,7 @@ package com.zask.label.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 
 @Entity
@@ -21,7 +22,9 @@ public class ChecklistItem {
 
     private String text;
 
+    @JsonProperty("isCompleted")
     private boolean isCompleted;
+
 
     private int assigneeId;
 

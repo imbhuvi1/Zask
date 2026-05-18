@@ -1,0 +1,77 @@
+<div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-lg font-bold text-gray-700 w-full text-center">Change visibility</h2>
+    <button (click)="close()" class="text-gray-400 hover:text-gray-600 absolute right-6 top-6">
+      <mat-icon class="!w-5 !h-5 !text-[20px]">close</mat-icon>
+    </button>
+  </div>
+
+  <div class="space-y-2">
+    
+    <!-- Private Option -->
+    <button 
+      (click)="selectVisibility('PRIVATE')"
+      class="w-full text-left p-4 rounded-xl transition-all flex gap-4 group"
+      [ngClass]="data.currentVisibility === 'PRIVATE' ? 'bg-gray-50' : 'hover:bg-gray-50'">
+      <mat-icon class="mt-1 !text-red-500 !w-5 !h-5 !text-[20px]">lock</mat-icon>
+      <div class="flex-1">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-gray-800">Private</span>
+          <mat-icon *ngIf="data.currentVisibility === 'PRIVATE'" class="!text-gray-700 !w-5 !h-5 !text-[20px]">check</mat-icon>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          Only board members can see this board. Workspace admins can close the board or remove members.
+        </p>
+      </div>
+    </button>
+
+    <!-- Workspace Option -->
+    <button 
+      (click)="selectVisibility('WORKSPACE')"
+      class="w-full text-left p-4 rounded-xl transition-all flex gap-4"
+      [ngClass]="data.currentVisibility === 'WORKSPACE' ? 'bg-gray-50' : 'hover:bg-gray-50'">
+      <mat-icon class="mt-1 !text-gray-600 !w-5 !h-5 !text-[20px]">people</mat-icon>
+      <div class="flex-1">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-gray-800">Workspace</span>
+          <mat-icon *ngIf="data.currentVisibility === 'WORKSPACE'" class="!text-gray-700 !w-5 !h-5 !text-[20px]">check</mat-icon>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          All members of the {{ data.workspaceName }} Workspace can see and edit this board.
+        </p>
+      </div>
+    </button>
+
+    <!-- Organization Option (Disabled as per user request) -->
+    <div class="w-full text-left p-4 rounded-xl flex gap-4 opacity-40 cursor-not-allowed">
+      <mat-icon class="mt-1 !text-gray-400 !w-5 !h-5 !text-[20px]">corporate_fare</mat-icon>
+      <div class="flex-1">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-gray-400">Organization</span>
+        </div>
+        <p class="text-sm text-gray-300 mt-1">
+          All members of the organization can see this board. The board must be added to an enterprise Workspace to enable this.
+        </p>
+      </div>
+    </div>
+
+    <!-- Public Option -->
+    <button 
+      (click)="selectVisibility('PUBLIC')"
+      class="w-full text-left p-4 rounded-xl transition-all flex gap-4"
+      [ngClass]="data.currentVisibility === 'PUBLIC' ? 'bg-gray-50' : 'hover:bg-gray-50'">
+      <mat-icon class="mt-1 !text-green-600 !w-5 !h-5 !text-[20px]">public</mat-icon>
+      <div class="flex-1">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-gray-800">Public</span>
+          <mat-icon *ngIf="data.currentVisibility === 'PUBLIC'" class="!text-gray-700 !w-5 !h-5 !text-[20px]">check</mat-icon>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          Anyone on the internet can see this board. Only board members can edit.
+        </p>
+      </div>
+    </button>
+
+  </div>
+</div>

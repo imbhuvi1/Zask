@@ -1,0 +1,107 @@
+<div class="bg-white rounded-2xl w-full max-w-md p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold text-gray-800">Add Member to {{ data.type }}</h2>
+    <button class="text-gray-400 hover:text-gray-600" (click)="close()">✕</button>
+  </div>
+
+  <!-- Search by Email -->
+  <div class="mb-4">
+    <label class="text-sm font-medium text-gray-700 mb-1 block">
+      Search by Email
+    </label>
+    <div class="flex gap-2">
+      <input
+        type="email"
+        [(ngModel)]="searchEmail"
+        (keyup.enter)="searchUser()"
+        placeholder="Enter email address..."
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-2
+               focus:outline-none focus:border-blue-500 focus:ring-2
+               focus:ring-blue-100 transition"
+      />
+      <button
+        (click)="searchUser()"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg
+               hover:bg-blue-700 transition font-medium"
+      >
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- User Found Preview -->
+  <div *ngIf="foundUser()"
+       class="border border-green-200 bg-green-50 rounded-xl p-4 mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-blue-500 text-white
+                  flex items-center justify-center font-bold text-lg">
+        {{ foundUser()!.fullName.charAt(0) }}
+      </div>
+      <div class="flex-1">
+        <p class="font-semibold text-gray-800">{{ foundUser()!.fullName }}</p>
+        <p class="text-sm text-gray-500">{{ foundUser()!.email }}</p>
+      </div>
+    </div>
+
+    <!-- Role Selector -->
+    <div class="mt-3">
+      <label class="text-sm font-medium text-gray-700">Assign Role</label>
+      <select [(ngModel)]="selectedRole"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
+                     focus:outline-none focus:border-blue-500 bg-white">
+        <!-- Workspace roles -->
+        <ng-container *ngIf="data.type === 'workspace'">
+          <option value="MEMBER">Member</option>
+          <option value="ADMIN">Admin</option>
+        </ng-container>
+        <!-- Board roles -->
+        <ng-container *ngIf="data.type === 'board'">
+          <option value="OBSERVER">Observer</option>
+          <option value="MEMBER">Member</option>
+          <option value="ADMIN">Admin</option>
+        </ng-container>
+      </select>
+    </div>
+
+    <button
+      (click)="addMember()"
+      class="mt-3 w-full bg-green-600 text-white py-2 rounded-lg
+             hover:bg-green-700 transition font-semibold">
+      ✅ Add {{ foundUser()!.fullName }}
+    </button>
+  </div>
+
+  <!-- User Not Found -->
+  <div *ngIf="notFound()"
+       class="border border-red-200 bg-red-50 rounded-xl p-4 mb-4
+              text-red-600 text-sm text-center">
+    ❌ No user found with this email.<br/>
+    Make sure they are registered on ZASK.
+  </div>
+
+  <!-- Divider -->
+  <div class="flex items-center gap-3 my-4">
+    <div class="flex-1 border-t border-gray-200"></div>
+    <span class="text-sm text-gray-400">or invite via link</span>
+    <div class="flex-1 border-t border-gray-200"></div>
+  </div>
+
+  <!-- Invite Link -->
+  <div class="flex gap-2">
+    <input
+      [value]="inviteLink"
+      readonly
+      class="flex-1 border border-gray-300 rounded-lg px-4 py-2
+             bg-gray-50 text-sm text-gray-600 truncate"
+    />
+    <button
+      (click)="copyLink()"
+      class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg
+             hover:bg-gray-200 transition font-medium text-sm shrink-0">
+      📋 Copy
+    </button>
+  </div>
+
+</div>

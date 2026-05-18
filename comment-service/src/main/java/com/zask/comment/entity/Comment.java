@@ -32,6 +32,9 @@ public class Comment {
 
     private boolean isDeleted;
 
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int likeCount = 0;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

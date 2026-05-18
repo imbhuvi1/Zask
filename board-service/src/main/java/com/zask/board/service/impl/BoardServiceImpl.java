@@ -2,6 +2,8 @@ package com.zask.board.service.impl;
 
 import com.zask.board.dto.*;
 import com.zask.board.entity.*;
+import com.zask.board.exception.ResourceNotFoundException;
+import com.zask.board.exception.ValidationException;
 import com.zask.board.repository.*;
 import com.zask.board.service.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public Board getBoardById(int boardId) {
         return boardRepository.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("Board not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
     }
 
     @Override
@@ -63,12 +65,19 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    public List<Board> getPublicBoards() {
+        return boardRepository.findByVisibility("PUBLIC");
+    }
+
+    @Override
     public Board updateBoard(int boardId, BoardRequest request) {
         Board board = getBoardById(boardId);
         if (request.getName() != null) board.setName(request.getName());
         if (request.getDescription() != null) board.setDescription(request.getDescription());
         if (request.getBackground() != null) board.setBackground(request.getBackground());
         if (request.getVisibility() != null) board.setVisibility(request.getVisibility());
+        if (request.getIsClosed() != null) board.setClosed(request.getIsClosed());
+        if (request.getIsStarred() != null) board.setStarred(request.getIsStarred());
         return boardRepository.save(board);
     }
 
@@ -89,10 +98,19 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
+    public void deleteBoardsByWorkspace(int workspaceId) {
+        List<Board> boards = boardRepository.findByWorkspaceId(workspaceId);
+        for (Board board : boards) {
+            deleteBoard(board.getBoardId());
+        }
+    }
+
+    @Override
     public BoardMember addMember(int boardId, BoardMemberRequest request) {
         getBoardById(boardId);
         if (boardMemberRepository.existsByBoardIdAndUserId(boardId, request.getUserId()))
-            throw new RuntimeException("User is already a member");
+            throw new ValidationException("User is already a member");
 
         BoardMember member = BoardMember.builder()
                 .boardId(boardId)
@@ -109,10 +127,20 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
+    public void removeMemberFromWorkspaceBoards(int workspaceId, int userId) {
+        List<Board> boards = boardRepository.findByWorkspaceId(workspaceId);
+        List<Integer> boardIds = boards.stream().map(Board::getBoardId).collect(Collectors.toList());
+        if (!boardIds.isEmpty()) {
+            boardMemberRepository.deleteByBoardIdInAndUserId(boardIds, userId);
+        }
+    }
+
+    @Override
     public void updateMemberRole(int boardId, int userId, String role) {
         BoardMember member = boardMemberRepository
                 .findByBoardIdAndUserId(boardId, userId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
         member.setRole(role);
         boardMemberRepository.save(member);
     }
@@ -120,5 +148,10 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public List<BoardMember> getMembers(int boardId) {
         return boardMemberRepository.findByBoardId(boardId);
+    }
+
+    @Override
+    public List<Board> searchBoards(String name) {
+        return boardRepository.findByNameContainingIgnoreCase(name);
     }
 }

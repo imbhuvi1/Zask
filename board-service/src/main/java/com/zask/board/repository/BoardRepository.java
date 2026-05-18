@@ -12,4 +12,5 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
     List<Board> findByVisibility(String visibility);
     long countByWorkspaceId(int workspaceId);
     List<Board> findByIsClosed(boolean isClosed);
+    List<Board> findByNameContainingIgnoreCase(String name);
 }

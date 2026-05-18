@@ -25,6 +25,9 @@ public class Checklist {
 
     private LocalDateTime createdAt;
 
+    @Transient
+    private java.util.List<ChecklistItem> items;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

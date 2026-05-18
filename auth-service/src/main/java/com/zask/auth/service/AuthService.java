@@ -16,4 +16,11 @@ public interface AuthService {
     List<User> searchUsers(String name);
     String refreshToken(String token);
     void logout(String token);
+    void forgotPassword(String email);
+    void resetPassword(String resetToken, String newPassword);
+    
+    // Admin methods
+    List<User> getAllUsers();
+    void toggleUserStatus(int userId, boolean isActive);
+    void deleteUser(int userId);
 }

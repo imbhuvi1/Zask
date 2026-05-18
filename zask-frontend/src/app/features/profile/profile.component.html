@@ -1,0 +1,107 @@
+<div class="p-8 max-w-[800px] mx-auto font-sans">
+  <div class="mb-8">
+    <h2 class="m-0 text-[#0f172a] text-3xl font-bold">Account Settings</h2>
+    <p class="mt-2 mb-0 text-gray-500 text-sm">Manage your profile, update your password, and control your account status.</p>
+  </div>
+
+  <div class="flex flex-col gap-6" *ngIf="currentUser()">
+    
+    <!-- Profile Info Card -->
+    <div class="bg-white rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+          <mat-icon class="text-orange-500 !text-[24px] !w-6 !h-6">person</mat-icon>
+        </div>
+        <div>
+          <h3 class="m-0 text-[#0f172a] text-xl font-bold">Profile Information</h3>
+          <p class="m-0 text-gray-500 text-sm">Update your personal details and display name</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Email Address (Read Only)</label>
+          <input class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none" [value]="currentUser()?.email" disabled />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-[#0f172a] uppercase tracking-wide">Full Name</label>
+          <input class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" [(ngModel)]="profileData.fullName" placeholder="John Doe" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-[#0f172a] uppercase tracking-wide">Username</label>
+          <input class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" [(ngModel)]="profileData.username" placeholder="@johndoe" />
+        </div>
+        
+        <div class="flex justify-end mt-2">
+          <button (click)="updateProfile()" class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2">
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Card -->
+    <div class="bg-white rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+          <mat-icon class="text-orange-500 !text-[24px] !w-6 !h-6">lock</mat-icon>
+        </div>
+        <div>
+          <h3 class="m-0 text-[#0f172a] text-xl font-bold">Security Settings</h3>
+          <p class="m-0 text-gray-500 text-sm">Ensure your account remains secure</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-[#0f172a] uppercase tracking-wide">Current Password</label>
+          <input type="password" class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" [(ngModel)]="passwordData.oldPassword" placeholder="Enter current password" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-[#0f172a] uppercase tracking-wide">New Password</label>
+          <input type="password" class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" [(ngModel)]="passwordData.newPassword" placeholder="Enter new password" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-[#0f172a] uppercase tracking-wide">Confirm New Password</label>
+          <input type="password" class="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" [(ngModel)]="passwordData.confirmPassword" placeholder="Confirm new password" />
+        </div>
+        
+        <div class="flex justify-end mt-2">
+          <button (click)="changePassword()" [disabled]="!passwordData.oldPassword || !passwordData.newPassword" class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            Update Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone Card -->
+    <div class="bg-white rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.08)] border-2 border-red-100">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+          <mat-icon class="text-red-500 !text-[24px] !w-6 !h-6">warning</mat-icon>
+        </div>
+        <div>
+          <h3 class="m-0 text-red-500 text-xl font-bold">Danger Zone</h3>
+          <p class="m-0 text-gray-500 text-sm">Irreversible actions for your account</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-col gap-5">
+        <p class="text-gray-700 text-sm leading-relaxed m-0 bg-red-50 p-4 rounded-xl border border-red-100">
+          Deactivating your account will instantly log you out and suspend your access to Zask. You will no longer be able to log in, and you will be removed from all workspaces. Only a Platform Admin can reactivate your account.
+        </p>
+        
+        <div>
+          <button (click)="deactivateAccount()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 px-8 py-3 rounded-xl font-semibold transition-all">
+            Deactivate Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

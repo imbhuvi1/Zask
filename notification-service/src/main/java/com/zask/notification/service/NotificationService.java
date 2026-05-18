@@ -13,5 +13,7 @@ public interface NotificationService {
     List<Notification> getByRecipient(int recipientId);
     long getUnreadCount(int recipientId);
     void deleteNotification(int notificationId);
+    void deleteAllByRecipient(int recipientId);
     List<Notification> getAll();
+    void broadcast(BroadcastRequest request);
 }

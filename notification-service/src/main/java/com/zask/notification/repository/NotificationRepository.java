@@ -7,11 +7,12 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
-    List<Notification> findByRecipientId(int recipientId);
+    List<Notification> findByRecipientIdOrRecipientId(int recipientId1, int recipientId2);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(n) FROM Notification n WHERE (n.recipientId = ?1 OR n.recipientId = ?2) AND n.isRead = ?3")
+    long countByRecipientIdOrRecipientIdAndIsRead(int recipientId1, int recipientId2, boolean isRead);
+    
     List<Notification> findByRecipientIdAndIsRead(int recipientId, boolean isRead);
-    long countByRecipientIdAndIsRead(int recipientId, boolean isRead);
-    List<Notification> findByType(String type);
-    List<Notification> findByRelatedId(int relatedId);
-    void deleteByNotificationId(int notificationId);
     void deleteByRecipientIdAndIsRead(int recipientId, boolean isRead);
+    void deleteByRecipientId(int recipientId);
 }

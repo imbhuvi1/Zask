@@ -2,6 +2,7 @@ package com.zask.list.service.impl;
 
 import com.zask.list.dto.*;
 import com.zask.list.entity.TaskList;
+import com.zask.list.exception.ResourceNotFoundException;
 import com.zask.list.repository.ListRepository;
 import com.zask.list.service.ListService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class ListServiceImpl implements ListService {
     @Override
     public TaskList getListById(int listId) {
         return listRepository.findById(listId)
-                .orElseThrow(() -> new RuntimeException("List not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("List not found"));
     }
 
     @Override

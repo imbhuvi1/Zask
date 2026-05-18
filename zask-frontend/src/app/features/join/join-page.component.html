@@ -1,0 +1,38 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+  <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center">
+    
+    <div *ngIf="isLoading()" class="flex flex-col items-center py-12">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p class="mt-4 text-gray-500">Loading invite information...</p>
+    </div>
+
+    <div *ngIf="!isLoading()">
+      <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span class="text-4xl font-bold">{{ entityName().charAt(0) }}</span>
+      </div>
+
+      <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Join {{ entityName() }}</h1>
+      <p class="text-gray-500 mb-8">
+        You have been invited to join this {{ type }}. 
+        Click the button below to become a member and start collaborating.
+      </p>
+
+      <button
+        (click)="join()"
+        [disabled]="isJoining()"
+        class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg
+               hover:bg-blue-700 transition transform hover:scale-[1.02] active:scale-[0.98]
+               disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-200
+               flex items-center justify-center gap-3">
+        <span *ngIf="!isJoining()">Join as Member</span>
+        <span *ngIf="isJoining()">Joining...</span>
+        <mat-spinner *ngIf="isJoining()" diameter="24" color="accent"></mat-spinner>
+      </button>
+
+      <p class="mt-6 text-sm text-gray-400">
+        Already a member? <a [routerLink]="type === 'workspace' ? '/dashboard' : ['/board', id]" class="text-blue-500 hover:underline">Go to {{ type }}</a>
+      </p>
+    </div>
+
+  </div>
+</div>

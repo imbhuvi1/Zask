@@ -18,4 +18,7 @@ public interface LabelService {
     void deleteChecklist(int checklistId);
     List<Checklist> getChecklistsByCard(int cardId);
     int getChecklistProgress(int checklistId);
+    Checklist updateChecklist(int checklistId, ChecklistRequest request);
+    ChecklistItem updateItem(int itemId, ChecklistItemRequest request);
+    void deleteItem(int itemId);
 }

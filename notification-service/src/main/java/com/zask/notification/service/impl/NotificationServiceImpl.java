@@ -2,6 +2,7 @@ package com.zask.notification.service.impl;
 
 import com.zask.notification.dto.*;
 import com.zask.notification.entity.Notification;
+import com.zask.notification.exception.ResourceNotFoundException;
 import com.zask.notification.repository.NotificationRepository;
 import com.zask.notification.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void markAsRead(int notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         notification.setRead(true);
         notificationRepository.save(notification);
     }
@@ -71,13 +72,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getByRecipient(int recipientId) {
-        return notificationRepository.findByRecipientId(recipientId);
+        // Return user-specific + global broadcasts
+        return notificationRepository.findByRecipientIdOrRecipientId(recipientId, -1);
     }
 
     @Override
     public long getUnreadCount(int recipientId) {
-        return notificationRepository
-                .countByRecipientIdAndIsRead(recipientId, false);
+        return notificationRepository.countByRecipientIdOrRecipientIdAndIsRead(recipientId, -1, false);
     }
 
     @Override
@@ -86,7 +87,25 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
+    public void deleteAllByRecipient(int recipientId) {
+        notificationRepository.deleteByRecipientId(recipientId);
+    }
+
+    @Override
     public List<Notification> getAll() {
         return notificationRepository.findAll();
+    }
+
+    @Override
+    public void broadcast(BroadcastRequest request) {
+        Notification notification = Notification.builder()
+                .recipientId(-1) // Special ID for all users
+                .actorId(0)
+                .type(request.getType())
+                .title(request.getTitle())
+                .message(request.getMessage())
+                .build();
+        notificationRepository.save(notification);
     }
 }

@@ -22,8 +22,7 @@ import { CommonModule } from '@angular/common';
     MatProgressSpinnerModule,
     RouterLink
   ],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  templateUrl: './login.component.html'
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -31,12 +30,13 @@ export class LoginComponent {
   private router = inject(Router);
 
   loginForm: FormGroup = this.fb.group({
-    username: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
 
   isLoading = false;
   errorMessage = '';
+  hidePassword = true;
 
   onSubmit() {
     if (this.loginForm.valid) {
@@ -44,12 +44,16 @@ export class LoginComponent {
       this.errorMessage = '';
       
       this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.router.navigate(['/dashboard']);
+        next: (response) => {
+          if (response.role === 'PLATFORM_ADMIN') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: (err) => {
           this.isLoading = false;
-          this.errorMessage = 'Invalid username or password. Please try again.';
+          this.errorMessage = 'Invalid email or password. Please try again.';
           console.error(err);
         }
       });

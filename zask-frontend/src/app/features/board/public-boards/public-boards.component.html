@@ -1,0 +1,60 @@
+<div class="min-h-screen bg-slate-50 font-sans text-slate-900">
+  <!-- Navbar -->
+  <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a routerLink="/" class="flex items-center gap-2 text-orange-600 hover:text-orange-700 transition-colors">
+          <mat-icon class="!w-8 !h-8 !text-[32px]">view_kanban</mat-icon>
+          <span class="font-bold text-2xl tracking-tight">ZASK</span>
+        </a>
+        <nav class="flex items-center gap-4">
+          <a routerLink="/login" class="text-slate-600 hover:text-orange-600 font-medium transition-colors">Log in</a>
+          <a routerLink="/register" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-md font-medium transition-colors shadow-sm shadow-orange-200">Sign up</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-10 text-center">
+      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Public Boards</h1>
+      <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+        Explore open projects, public roadmaps, and community boards. You can view these boards without an account.
+      </p>
+    </div>
+
+    <!-- Boards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" *ngIf="publicBoards$ | async as boards; else loading">
+      
+      <div *ngIf="boards.length === 0" class="col-span-full py-20 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <mat-icon class="text-slate-400">search_off</mat-icon>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-2">No public boards found</h3>
+        <p class="text-slate-500">There are currently no boards set to public visibility.</p>
+      </div>
+
+      <a *ngFor="let board of boards" 
+         [routerLink]="['/board', board.boardId]" 
+         class="block group relative h-[100px] rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1"
+         [style.background-color]="board.background || '#0079bf'">
+        <!-- Background Overlay -->
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+        
+        <!-- Board Info -->
+        <div class="absolute inset-0 p-4 flex flex-col justify-start text-white">
+          <h3 class="font-bold text-base leading-tight truncate drop-shadow-md">{{board.name}}</h3>
+        </div>
+      </a>
+      
+    </div>
+
+    <!-- Loading State -->
+    <ng-template #loading>
+      <div class="flex justify-center items-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-orange-200 border-t-orange-600"></div>
+      </div>
+    </ng-template>
+  </main>
+</div>

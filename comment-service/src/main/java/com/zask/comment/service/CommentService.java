@@ -15,4 +15,8 @@ public interface CommentService {
     List<Attachment> getAttachmentsByCard(int cardId);
     void deleteAttachment(int attachmentId);
     long getCommentCount(int cardId);
+    Comment likeComment(int commentId);
+    Reaction addReaction(int commentId, int userId, String emoji);
+    void removeReaction(int commentId, int userId, String emoji);
+    List<Reaction> getReactions(int commentId);
 }

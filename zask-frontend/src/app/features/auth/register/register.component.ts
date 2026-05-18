@@ -22,8 +22,7 @@ import { CommonModule } from '@angular/common';
     MatProgressSpinnerModule,
     RouterLink
   ],
-  templateUrl: './register.component.html',
-  styleUrl: '../login/login.component.scss' // Reusing beautiful glassmorphism styles
+  templateUrl: './register.component.html'
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
@@ -39,6 +38,7 @@ export class RegisterComponent {
 
   isLoading = false;
   errorMessage = '';
+  hidePassword = true;
 
   onSubmit() {
     if (this.registerForm.valid) {
@@ -46,8 +46,12 @@ export class RegisterComponent {
       this.errorMessage = '';
       
       this.authService.register(this.registerForm.value).subscribe({
-        next: () => {
-          this.router.navigate(['/dashboard']);
+        next: (response) => {
+          if (response.role === 'PLATFORM_ADMIN') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: (err) => {
           this.isLoading = false;
