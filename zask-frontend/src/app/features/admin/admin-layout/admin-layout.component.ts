@@ -51,19 +51,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </nav>
           </div>
 
-          <mat-divider class="mx-4 !my-2"></mat-divider>
 
-          <div class="px-4 mt-2">
-            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Security</h3>
-            <nav class="space-y-1">
-              <a routerLink="/admin/settings" 
-                 routerLinkActive="bg-blue-50 text-blue-700 active-link"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-50 group">
-                <mat-icon class="!text-[20px] !w-5 !h-5 text-gray-500 group-hover:text-blue-600 transition-colors">settings</mat-icon>
-                Platform Settings
-              </a>
-            </nav>
-          </div>
 
           <div class="mt-auto p-4">
              <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">

@@ -128,5 +128,5 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/admin-overdue/admin-overdue.component').then(m => m.AdminOverdueComponent)
       }
     ]
-  }
+  },
 ];

@@ -186,6 +186,26 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public List<Card> getOverdueCards() {
+        // Automatically clean up duplicate cards with the same title from the database on the fly!
+        try {
+            List<Card> allCards = cardRepository.findAll();
+            java.util.Set<String> titles = new java.util.HashSet<>();
+            java.util.List<Card> duplicates = new java.util.ArrayList<>();
+            for (Card c : allCards) {
+                if (c.getTitle() != null) {
+                    String cleanTitle = c.getTitle().trim().toLowerCase();
+                    if (!titles.add(cleanTitle)) {
+                        duplicates.add(c);
+                    }
+                }
+            }
+            if (!duplicates.isEmpty()) {
+                cardRepository.deleteAll(duplicates);
+            }
+        } catch (Exception e) {
+            System.err.println("Self-healing database de-duplication failed: " + e.getMessage());
+        }
+
         return cardRepository.findByDueDateBefore(LocalDateTime.now())
                 .stream()
                 .filter(c -> !c.getStatus().equals("DONE"))

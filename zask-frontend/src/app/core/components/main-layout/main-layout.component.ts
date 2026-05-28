@@ -21,7 +21,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { WorkspaceDialogComponent } from '../../../features/workspace/workspace-dialog/workspace-dialog.component';
-import { UserProfilePreviewComponent } from '../../../shared/components/user-profile-preview/user-profile-preview.component';
+import { UserProfilePreviewComponent } from '../../../shared/components/add-member-dialog/user-profile-preview/user-profile-preview.component';
 import { ArchivedCardsDialogComponent } from '../../../features/profile/archived-cards-dialog/archived-cards-dialog.component';
 
 export interface SearchItem {
@@ -201,6 +201,7 @@ export interface SearchItem {
             </button>
             
             <mat-divider class="!my-2"></mat-divider>
+            
             
             <button mat-menu-item class="!h-10 !leading-10 !text-sm text-[#172b4d]" (click)="openCreateWorkspaceDialog()">
               <div class="flex items-center gap-2">

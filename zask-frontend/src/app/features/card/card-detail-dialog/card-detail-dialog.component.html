@@ -455,7 +455,7 @@
                 <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 text-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
                      [style.background]="'#6366f1'"
                      (click)="openProfilePreview(act.actorId, $event)">
-                  {{ act.actorName?.charAt(0) || 'U' }}
+                  {{ act.actorName.charAt(0) || 'U' }}
                 </div>
                 <div class="flex flex-col min-w-0 flex-1">
                   <div class="text-xs leading-snug">
@@ -472,7 +472,7 @@
                             'bg-purple-50 text-purple-700': act.action === 'MOVE',
                             'bg-slate-50 text-slate-600': !['STATUS_CHANGE','ASSIGNMENT','DUE_DATE_CHANGE','MOVE'].includes(act.action)
                           }">
-                      {{ act.action?.replace('_', ' ') }}
+                      {{ act.action.replace('_', ' ') }}
                     </span>
                     <span class="text-[10px] text-slate-400">{{ act.timestamp | date:'MMM d, h:mm a' }}</span>
                   </div>

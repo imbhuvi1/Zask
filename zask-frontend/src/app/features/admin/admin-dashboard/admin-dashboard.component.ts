@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { ExportService } from '../../../core/services/export.service';
+import { BoardService } from '../../../core/services/board.service';
+import { CardService } from '../../../core/services/card.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -122,12 +124,14 @@ import { forkJoin } from 'rxjs';
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
   private exportService = inject(ExportService);
+  private boardService = inject(BoardService);
+  private cardService = inject(CardService);
 
   totalUsers = signal<number>(0);
   totalWorkspaces = signal<number>(0);
   totalCards = signal<number>(0);
   activeTeams = signal<number>(0);
-  
+
   overdueCards = signal<any[]>([]);
   auditLogs = signal<any[]>([]);
 
@@ -140,14 +144,34 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.adminService.getAllUsers().subscribe(res => this.totalUsers.set(res.length));
-    this.adminService.getAllWorkspaces().subscribe(res => {
-      this.totalWorkspaces.set(res.length);
-      this.activeTeams.set(res.length); // Assuming each workspace is a team for now
-    });
-    
-    this.adminService.getOverdueCards().subscribe(res => {
-        this.overdueCards.set(res);
-        this.totalCards.set(res.length + 150); // Mocking total cards for analytics
+
+    forkJoin({
+      workspaces: this.adminService.getAllWorkspaces(),
+      boards: this.boardService.searchBoards(""),
+      cards: this.cardService.searchCards(""),
+      overdue: this.adminService.getOverdueCards()
+    }).subscribe(({ workspaces, boards, cards, overdue }) => {
+      // 1. Filter only Active Workspaces
+      const activeWorkspaceIds = new Set(workspaces.map(ws => ws.workspaceId));
+      this.totalWorkspaces.set(workspaces.length);
+      this.activeTeams.set(workspaces.length);
+
+      // 2. Filter only Active Boards (belonging to active workspaces)
+      const activeBoards = boards.filter(b => activeWorkspaceIds.has(b.workspaceId));
+      const activeBoardIds = new Set(activeBoards.map(b => b.boardId));
+
+      // 3. Count only Active Cards (belonging to active boards)
+      const activeCards = cards.filter(c => activeBoardIds.has(c.boardId));
+      this.totalCards.set(activeCards.length);
+
+      // 4. Filter only Active Overdue Cards (belonging to active boards and strictly past due date)
+      const now = new Date().getTime();
+      const activeOverdue = overdue.filter(c => 
+        activeBoardIds.has(c.boardId) && 
+        c.dueDate && 
+        new Date(c.dueDate).getTime() < now
+      );
+      this.overdueCards.set(activeOverdue);
     });
 
     this.adminService.getAuditLogs().subscribe(res => this.auditLogs.set(res));
