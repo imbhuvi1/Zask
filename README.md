@@ -40,6 +40,204 @@ ZASK/ (Root Workspace)
 
 ---
 
+```text
+
+D:\ZASK\ZASK-FRONTEND\SRC
+│   favicon.ico
+│   index.html
+│   main.ts
+│   styles.scss
+│   
+├───app
+│   │   app.component.html
+│   │   app.component.scss
+│   │   app.component.spec.ts
+│   │   app.component.ts
+│   │   app.config.ts
+│   │   app.routes.ts
+│   │   
+│   ├───core
+│   │   ├───components
+│   │   │   ├───confirm-dialog
+│   │   │   │       confirm-dialog.component.ts
+│   │   │   │       
+│   │   │   └───main-layout
+│   │   │           main-layout.component.ts
+│   │   │           
+│   │   ├───guards
+│   │   │       admin.guard.ts
+│   │   │       auth.guard.ts
+│   │   │       guest.guard.ts
+│   │   │       
+│   │   ├───interceptors
+│   │   │       jwt.interceptor.ts
+│   │   │       
+│   │   ├───models
+│   │   │       activity.model.ts
+│   │   │       attachment.model.ts
+│   │   │       board.model.ts
+│   │   │       card.model.ts
+│   │   │       comment.model.ts
+│   │   │       label.model.ts
+│   │   │       list.model.ts
+│   │   │       notification.model.ts
+│   │   │       user.model.ts
+│   │   │       workspace.model.ts
+│   │   │       
+│   │   └───services
+│   │           activity.service.ts
+│   │           admin.service.ts
+│   │           auth.service.ts
+│   │           board.service.ts
+│   │           card.service.ts
+│   │           comment.service.ts
+│   │           export.service.ts
+│   │           label.service.ts
+│   │           list.service.ts
+│   │           notification.service.ts
+│   │           profile-preview.service.ts
+│   │           workspace.service.ts
+│   │           
+│   ├───features
+│   │   ├───admin
+│   │   │   ├───admin-audit
+│   │   │   │       admin-audit.component.ts
+│   │   │   │       
+│   │   │   ├───admin-broadcast
+│   │   │   │       admin-broadcast.component.ts
+│   │   │   │       
+│   │   │   ├───admin-dashboard
+│   │   │   │       admin-dashboard.component.ts
+│   │   │   │       
+│   │   │   ├───admin-layout
+│   │   │   │       admin-layout.component.ts
+│   │   │   │       
+│   │   │   ├───admin-overdue
+│   │   │   │       admin-overdue.component.ts
+│   │   │   │       
+│   │   │   ├───admin-users
+│   │   │   │       admin-users.component.ts
+│   │   │   │       
+│   │   │   └───admin-workspaces
+│   │   │           admin-workspaces.component.ts
+│   │   │           
+│   │   ├───auth
+│   │   │   ├───forgot-password
+│   │   │   │       forgot-password.component.html
+│   │   │   │       forgot-password.component.scss
+│   │   │   │       forgot-password.component.ts
+│   │   │   │       
+│   │   │   ├───login
+│   │   │   │       login.component.html
+│   │   │   │       login.component.ts
+│   │   │   │       
+│   │   │   ├───register
+│   │   │   │       register.component.html
+│   │   │   │       register.component.ts
+│   │   │   │       
+│   │   │   └───reset-password
+│   │   │           reset-password.component.html
+│   │   │           reset-password.component.ts
+│   │   │           
+│   │   ├───board
+│   │   │   │   board.component.html
+│   │   │   │   board.component.ts
+│   │   │   │   
+│   │   │   ├───board-members
+│   │   │   │       board-members.component.html
+│   │   │   │       board-members.component.ts
+│   │   │   │       
+│   │   │   ├───board-visibility-dialog
+│   │   │   │       board-visibility-dialog.component.html
+│   │   │   │       board-visibility-dialog.component.ts
+│   │   │   │       
+│   │   │   └───public-boards
+│   │   │           public-boards.component.html
+│   │   │           public-boards.component.ts
+│   │   │           
+│   │   ├───card
+│   │   │   ├───card-detail-dialog
+│   │   │   │       card-detail-dialog.component.html
+│   │   │   │       card-detail-dialog.component.ts
+│   │   │   │       
+│   │   │   ├───card-move-copy-dialog
+│   │   │   │       card-move-copy-dialog.component.ts
+│   │   │   │       
+│   │   │   └───card-quick-edit
+│   │   │           card-quick-edit.component.html
+│   │   │           card-quick-edit.component.ts
+│   │   │           
+│   │   ├───home
+│   │   │       home.component.html
+│   │   │       home.component.ts
+│   │   │       
+│   │   ├───join
+│   │   │       join-page.component.html
+│   │   │       join-page.component.ts
+│   │   │       
+│   │   ├───notifications
+│   │   │       notifications.component.html
+│   │   │       notifications.component.ts
+│   │   │       
+│   │   ├───profile
+│   │   │   │   profile.component.html
+│   │   │   │   profile.component.ts
+│   │   │   │   
+│   │   │   ├───archived-cards-dialog
+│   │   │   │       archived-cards-dialog.component.ts
+│   │   │   │       
+│   │   │   └───user-profile-view
+│   │   │           user-profile-view.component.ts
+│   │   │           
+│   │   └───workspace
+│   │       │   workspace-detail.component.ts
+│   │       │   
+│   │       ├───board-dialog
+│   │       │       board-dialog.component.ts
+│   │       │       
+│   │       ├───closed-boards-dialog
+│   │       │       closed-boards-dialog.component.ts
+│   │       │       
+│   │       ├───dashboard
+│   │       │       dashboard.component.ts
+│   │       │       
+│   │       ├───workspace-dialog
+│   │       │       workspace-dialog.component.ts
+│   │       │       
+│   │       ├───workspace-members
+│   │       │       workspace-members.component.html
+│   │       │       workspace-members.component.ts
+│   │       │       
+│   │       ├───workspace-settings
+│   │       │       workspace-settings.component.html
+│   │       │       workspace-settings.component.scss
+│   │       │       workspace-settings.component.ts
+│   │       │       
+│   │       └───workspace-settings-layout
+│   │               workspace-settings-layout.component.html
+│   │               workspace-settings-layout.component.scss
+│   │               workspace-settings-layout.component.ts
+│   │               
+│   ├───layout
+│   └───shared
+│       ├───components
+│       │   ├───add-member-dialog
+│       │   │       add-member-dialog.component.html
+│       │   │       add-member-dialog.component.ts
+│       │   │       
+│       │   └───user-profile-preview
+│       │           user-profile-preview.component.ts
+│       │           
+│       ├───directives
+│       └───pipes
+├───assets
+│       .gitkeep
+│       
+└───environments
+        environment.ts
+
+```
+
 ## 🛠️ Technology Stack
 
 The project utilizes a curated, state-of-the-art tech stack selected for scalability, responsiveness, and clean code separation.
