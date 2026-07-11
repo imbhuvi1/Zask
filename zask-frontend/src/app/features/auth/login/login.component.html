@@ -69,9 +69,15 @@
     </form>
 
     <!-- Footer link -->
-    <div class="text-center mt-8 text-sm text-gray-500">
+    <div class="text-center mt-8 text-sm text-gray-500 flex flex-col items-center gap-4">
       <span>Don't have an account? <a routerLink="/register"
           class="font-semibold text-orange-500 hover:text-orange-600 transition-colors">Sign up</a></span>
+
+      <button type="button" routerLink="/"
+      class="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors group">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] group-hover:-translate-x-0.5 transition-transform">home</mat-icon>
+      Back to Home
+      </button>
     </div>
 
   </div>
