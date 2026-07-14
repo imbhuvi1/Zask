@@ -4,6 +4,7 @@ import com.zask.auth.dto.*;
 import com.zask.auth.entity.User;
 import com.zask.auth.service.AuthService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @CrossOrigin(origins = "*")
@@ -30,9 +32,13 @@ public class AuthResource {
         @ApiResponse(responseCode = "400", description = "Invalid request or email already exists")
     })
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        log.info("Registration attempt for email={}", request.getEmail());
         try {
-            return ResponseEntity.ok(authService.register(request));
+            AuthResponse response = authService.register(request);
+            log.info("Registration successful for email={}, userId={}", request.getEmail(), response.getUserId());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
+            log.error("Registration failed for email={} - {}", request.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -44,9 +50,13 @@ public class AuthResource {
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account deactivated")
     })
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        log.info("Login attempt for email={}", request.getEmail());
         try {
-            return ResponseEntity.ok(authService.login(request));
+            AuthResponse response = authService.login(request);
+            log.info("Login successful for email={}", request.getEmail());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
+            log.warn("Login failed for email={} - {}", request.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -239,10 +249,13 @@ public class AuthResource {
         @ApiResponse(responseCode = "404", description = "User not found")
     })
     public ResponseEntity<?> deleteUser(@PathVariable int userId) {
+        log.warn("Admin action: permanent delete requested for userId={}", userId);
         try {
             authService.deleteUser(userId);
+            log.info("User permanently deleted, userId={}", userId);
             return ResponseEntity.ok(Map.of("message", "User deleted permanently"));
         } catch (Exception e) {
+            log.error("Failed to delete userId={} - {}", userId, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

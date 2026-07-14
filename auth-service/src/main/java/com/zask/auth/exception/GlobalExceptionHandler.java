@@ -1,5 +1,6 @@
 package com.zask.auth.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,11 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -26,6 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        log.warn("Unauthorized access attempt: {}", ex.getMessage());
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message(ex.getMessage())
@@ -36,6 +40,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        log.warn("Validation error: {}", ex.getMessage());
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -49,6 +54,7 @@ public class GlobalExceptionHandler {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.toList());
+        log.warn("Request validation failed: {}", errors);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.BAD_REQUEST.value());
@@ -61,6 +67,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        log.error("Unhandled runtime exception: {}", ex.getMessage(), ex);
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message(ex.getMessage())

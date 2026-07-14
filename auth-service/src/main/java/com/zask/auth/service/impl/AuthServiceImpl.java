@@ -8,6 +8,7 @@ import com.zask.auth.exception.ValidationException;
 import com.zask.auth.repository.UserRepository;
 import com.zask.auth.service.AuthService;
 import com.zask.auth.util.JwtUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -149,11 +151,12 @@ public class AuthServiceImpl implements AuthService {
                             "http://localhost:4200/reset-password?token=" + token);
             try {
                 mailSender.send(message);
+                log.info("Password reset email sent to {}", email);
             } catch (Exception e) {
-                System.err.println("Could not send email: " + e.getMessage());
+                log.error("Could not send password reset email to {} - {}", email, e.getMessage());
             }
         } else {
-            System.out.println("Mock Email to " + email + ": Reset token is " + token);
+            log.info("Mail sender not configured. Mock email to {}: reset token is {}", email, token);
         }
     }
 
